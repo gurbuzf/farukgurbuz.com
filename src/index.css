@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Futura';
+  src: url('./assets/fonts/futuramedium.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Futura', sans-serif;
+  /* background-color: #EBEDEE  ; */
+}
