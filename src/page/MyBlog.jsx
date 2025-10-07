@@ -23,9 +23,8 @@ export default function MyBlog() {
                     <i className="fa-solid fa-quote-left"></i>
                 </div>
                 <h2 className="text-2xl font-semibold md:text-5xl md:font-bold md:leading-14  text-[#12223A]">
-                    Data • GIS • Water —   <br />
-                    Where  <br />
-                    My Curiosity Flows
+                    Data • GIS • Water <br />
+                    Where My Curiosity Flows
                 </h2>
                 <div className="text-2xl mt-4 grid justify-items-end text-[#12223A]">
                     <i className="fa-solid fa-quote-right"></i>

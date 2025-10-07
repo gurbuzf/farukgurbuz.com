@@ -43,7 +43,7 @@ return (
             <div className="max-w-[1240px] mx-auto px-4 flex  justify-between items-center h-full">
                 <div className="logo">
                     {/* <img className="w-12 bg-[#12223A] text-white" src="/logo3.png" alt="logo" /> */}
-                    <img className="w-10 text-white" src="/logo5.png" alt="logo" />
+                    <img className="w-15 text-white" src="/farukgurbuz-dark.png" alt="logo" />
                 </div>
 
                 <nav className="hidden md:flex">

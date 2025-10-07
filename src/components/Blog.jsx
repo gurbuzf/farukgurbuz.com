@@ -16,7 +16,7 @@ export default function Blog() {
           {/* <h2 className="text-4xl text-[#12223A] font-bold mb-4">Blog Yazılarım</h2> */}
           <h1 className="mb-8 text-4xl font-boldrelative"><span className="py-[0.5px] px-2 text-5xl bg-[#12223A] text-white ">B</span>log Yazılarım</h1>
           <p className="text-gray-800 leading-relaxed">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequuntur atque aspernatur necessitatibus expedita, et, fugit provident ea dolorum excepturi aut omnis blanditiis quam accusamus vitae quis doloremque nihil rerum cum.
+            To be updated.
           </p>
           <Link to="/blog" className="text-[#12223A] font-semibold mt-4 block">
             Explore →

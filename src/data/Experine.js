@@ -1,7 +1,7 @@
 let timelineElements = [
     {
         id: 1,
-        title: "Bachelor's degree, Civil Engineering",
+        title: "BSc - Civil Engineering",
         location:"Istanbul Technical University",
         description:" ",
         buttonText: "fdfgd",
@@ -10,7 +10,7 @@ let timelineElements = [
     },
     {
         id: 2,
-        title: "Master's degree Water Resources Engineering",
+        title: "MSc - Water Resources Engineering",
         location:"University of Iowa",
         description:" ",
         buttonText: "fdfgd",
