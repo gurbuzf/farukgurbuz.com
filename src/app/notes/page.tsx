@@ -13,9 +13,9 @@ export default function NotesPage() {
       <div className="font-plex-mono font-medium text-[12px] tracking-[0.16em] text-[var(--acc)]">
         {t(copy.notes.sheetEyebrow, lang)}
       </div>
-      <h2 className="mt-3 font-display font-semibold text-[36px] sm:text-[54px] leading-[1.02] tracking-[-0.02em] text-[var(--ink)]">
+      <h1 className="mt-3 font-display font-semibold text-[36px] sm:text-[54px] leading-[1.02] tracking-[-0.02em] text-[var(--ink)]">
         {t(copy.notes.title, lang)}
-      </h2>
+      </h1>
       <p className="mt-3.5 max-w-[640px] font-display text-[16px] leading-[1.6] text-[var(--ink2)]">
         {t(copy.notes.desc, lang)}
       </p>

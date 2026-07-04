@@ -20,6 +20,7 @@ const INLINE_THEME_SCRIPT = `
   try {
     var saved = JSON.parse(localStorage.getItem('${STORAGE_KEY}') || '{}');
     if (saved.dark) document.documentElement.setAttribute('data-atlas-dark', 'true');
+    if (saved.lang === 'tr' || saved.lang === 'en') document.documentElement.lang = saved.lang;
   } catch (e) {}
 })();
 `;
@@ -41,6 +42,10 @@ export function AtlasProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.setAttribute("data-atlas-dark", dark ? "true" : "false");
   }, [dark]);
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const persist = useCallback((next: { lang: Lang; dark: boolean }) => {
     try {

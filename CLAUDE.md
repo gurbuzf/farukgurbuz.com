@@ -8,7 +8,6 @@ This is the source for farukgurbuz.com. It was modernized from a Vite + React + 
 
 - **`src/app/`** — App Router pages/layouts (`layout.tsx`, `page.tsx`, `globals.css`).
 - **`public/`** — static assets.
-- **`_old_archive/`** — the entire pre-migration repository (old Vite site, its `README.md`, `.gitignore`, `package.json`, `src/`, `public/`, etc.), preserved as-is for reference/content migration. Not part of the active app; don't import from it.
 
 Important: this project was scaffolded with a recent/pre-release Next.js version (currently 16.x on Turbopack) that has breaking changes vs. older Next.js conventions in training data. Per `AGENTS.md` at the repo root: **check `node_modules/next/dist/docs/` for the current API/conventions before writing Next.js code**, and heed any deprecation notices.
 
@@ -25,7 +24,7 @@ There is no test suite configured yet.
 
 ## Notes
 
-- Content/copy/assets for the actual site still lives in `_old_archive/src` and `_old_archive/public` from the old Vite version — migrate it into `src/app` incrementally rather than assuming the new app already has it.
+- The pre-migration Vite repository that used to be preserved under `_old_archive/` has been removed — all content has been migrated into `src/`. It's still recoverable from git history if ever needed.
 - The repo's remote is `gurbuzf/farukgurbuz.com` on GitHub, `main` branch (a `gh-pages` branch also exists from the old deploy setup — check whether it's still needed once the new hosting/deploy approach is decided).
 
 ## Content status

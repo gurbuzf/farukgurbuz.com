@@ -12,9 +12,9 @@ export default function PublicationsPage() {
       <div className="font-plex-mono font-medium text-[12px] tracking-[0.16em] text-[var(--acc)]">
         {t(copy.pubs.sheetEyebrow, lang)}
       </div>
-      <h2 className="mt-3 font-display font-semibold text-[36px] sm:text-[54px] leading-[1.02] tracking-[-0.02em] text-[var(--ink)]">
+      <h1 className="mt-3 font-display font-semibold text-[36px] sm:text-[54px] leading-[1.02] tracking-[-0.02em] text-[var(--ink)]">
         {t(copy.pubs.title, lang)}
-      </h2>
+      </h1>
 
       <div className="max-w-[980px] mt-9 flex flex-col gap-[30px]">
         {publicationGroups.map((group) => (

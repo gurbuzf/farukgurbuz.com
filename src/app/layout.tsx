@@ -17,10 +17,32 @@ const ibmPlexMono = IBM_Plex_Mono({
   weight: ["400", "500", "600"],
 });
 
+const SITE_NAME = "Faruk Gürbüz — Personal Atlas";
+const SITE_DESCRIPTION =
+  "Hydrologist, geospatial data scientist and builder of open tools — surveyed across İstanbul, Ankara and Iowa City.";
+
 export const metadata: Metadata = {
-  title: "Faruk Gürbüz — Personal Atlas",
-  description:
-    "Hydrologist, geospatial data scientist and builder of open tools — surveyed across İstanbul, Ankara and Iowa City.",
+  metadataBase: new URL("https://farukgurbuz.com"),
+  title: {
+    default: SITE_NAME,
+    template: "%s | Faruk Gürbüz",
+  },
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    url: "/",
+    siteName: "Faruk Gürbüz",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({

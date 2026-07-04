@@ -14,7 +14,7 @@ export function SiteFooter() {
   ];
 
   return (
-    <div className="mt-auto flex items-center justify-between gap-4 flex-wrap px-7 py-3.5 border-t-[1.5px] border-[var(--frame)] flex-none">
+    <footer className="mt-auto flex items-center justify-between gap-4 flex-wrap px-7 py-3.5 border-t-[1.5px] border-[var(--frame)] flex-none">
       <span className="font-plex-mono font-medium text-[10px] tracking-[0.12em] text-[var(--mut)]">
         {t(copy.footer.copyright, lang)}
       </span>
@@ -31,6 +31,6 @@ export function SiteFooter() {
           </a>
         ))}
       </div>
-    </div>
+    </footer>
   );
 }

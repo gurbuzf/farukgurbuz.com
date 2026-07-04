@@ -4,7 +4,7 @@ import { copy, t, type Lang } from "@/content/copy";
 
 export function ScaleBar({ lang }: { lang: Lang }) {
   return (
-    <div className="relative md:absolute md:left-11 md:bottom-11 flex items-end gap-5">
+    <div className="relative min-[1400px]:absolute min-[1400px]:left-11 min-[1400px]:bottom-11 flex items-end gap-5">
       <div>
         <div className="flex">
           <span className="w-11 h-2 bg-[var(--frame)]" />

@@ -4,8 +4,15 @@ import { copy, t, type Lang } from "@/content/copy";
 
 export function FeaturePhoto({ lang }: { lang: Lang }) {
   return (
-    <div className="relative md:absolute md:right-24 md:bottom-16 flex items-center gap-4">
-      <svg width="52" height="70" viewBox="0 0 60 80" aria-hidden="true" className="hidden sm:block">
+    <div className="relative min-[1400px]:absolute min-[1400px]:right-24 min-[1400px]:bottom-16 flex items-center gap-4">
+      <svg
+        width="52"
+        height="70"
+        viewBox="0 0 60 80"
+        aria-hidden="true"
+        className="hidden sm:block origin-center"
+        style={{ animation: "markerPulse 2.6s ease-in-out infinite" }}
+      >
         <path
           d="M30,4 C43,4 54,15 54,28 C54,46 30,72 30,72 C30,72 6,46 6,28 C6,15 17,4 30,4 Z"
           fill="var(--acc)"
