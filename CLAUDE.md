@@ -27,3 +27,8 @@ There is no test suite configured yet.
 
 - Content/copy/assets for the actual site still lives in `_old_archive/src` and `_old_archive/public` from the old Vite version — migrate it into `src/app` incrementally rather than assuming the new app already has it.
 - The repo's remote is `gurbuzf/farukgurbuz.com` on GitHub, `main` branch (a `gh-pages` branch also exists from the old deploy setup — check whether it's still needed once the new hosting/deploy approach is decided).
+
+## Content status
+
+- **CV — Skills (`src/content/cv.ts`, `src/components/cv/skills-rail.tsx`)**: skill entries are name-only (`{ label }`). There is no proficiency-level indicator (no bars, no Expert/Proficient legend) — don't reintroduce a `level` field or the legend row without an explicit request.
+- **Travels (`src/content/trips.ts`)**: only one entry (`istanbul`) exists right now as a placeholder. The other five trips (Iowa City, Houston, Erzurum, Bonn → The Hague, Bozkurt) were intentionally removed until real trip content/photos are ready — see `CONTENT-GUIDE.md` (git-ignored, local-only) for how to add trips back.
