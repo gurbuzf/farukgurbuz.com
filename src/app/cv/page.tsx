@@ -24,8 +24,8 @@ export default function CvPage() {
           </p>
         </div>
         <a
-          href="/Faruk_Gurbuz_CV.pdf"
-          download="Faruk_Gurbuz_CV.pdf"
+          href="/2026_farukgurbuz_CV.pdf"
+          download="2026_farukgurbuz_CV.pdf"
           className="no-underline px-[22px] py-[13px] bg-[var(--frame)] text-[var(--paper)] font-display font-semibold text-[13px] inline-flex items-center gap-2.5"
         >
           ↓ {t(copy.cv.download, lang)}
