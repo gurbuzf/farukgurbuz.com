@@ -6,6 +6,7 @@ export type Publication = {
   highlightAuthor: string;
   year: string;
   venue: string;
+  doi?: string;
 };
 
 export type PublicationGroup = {
@@ -18,30 +19,43 @@ export const publicationGroups: PublicationGroup[] = [
     heading: { en: "IN SUBMISSION", tr: "DEĞERLENDİRMEDE" },
     entries: [
       {
-        idLabel: "S.2",
-        filled: false,
-        title:
-          "What Can We Learn from High-Resolution Hydrologic Simulations: Interpolation vs. Extrapolation in Flood Forecasting in Non-Stationary Scenarios",
-        authors: ["Mantilla", "Barco", "Lewkebandara", "Mehboob", "Perez", "Gurbuz", "Xiao"],
-        highlightAuthor: "Gurbuz",
-        year: "2025",
-        venue: "HESS (submitted)",
-      },
-      {
         idLabel: "S.1",
         filled: false,
         title:
-          "Advancing Machine Learning-Based Streamflow Prediction Through Event Greedy Sampling, Asymmetric Loss Function, and Rainfall Forecasting Uncertainty",
-        authors: ["Tofighi", "Gurbuz", "Mantilla", "Xiao"],
+          "Interpolation vs. Extrapolation in Flood Forecasting: Exploring the Predictive Capability of Conceptual and Machine Learning Tools in Non-Stationary Scenarios",
+        authors: ["Mantilla", "Barco", "Mehboob", "Lewkebandara", "Perez", "Gurbuz", "Xiao"],
         highlightAuthor: "Gurbuz",
         year: "2025",
-        venue: "Environmental Modelling & Software (submitted)",
+        venue: "HESS (submitted)",
+        doi: "10.2139/ssrn.5555228",
       },
     ],
   },
   {
     heading: { en: "JOURNAL", tr: "DERGİ" },
     entries: [
+      {
+        idLabel: "J.6",
+        filled: true,
+        title:
+          "Advancing Machine Learning-Based Streamflow Prediction Through Event Greedy Selection, Asymmetric Loss Function, and Rainfall Forecasting Uncertainty",
+        authors: ["Tofighi", "Gurbuz", "Mantilla", "Xiao"],
+        highlightAuthor: "Gurbuz",
+        year: "2025",
+        venue: "Applied Sciences",
+        doi: "10.3390/app152111656",
+      },
+      {
+        idLabel: "J.5",
+        filled: true,
+        title:
+          "A Data-Driven Framework for Flood Mitigation: Transformer-Based Damage Prediction and Reinforcement Learning for Reservoir Operations",
+        authors: ["Tofighi", "Gurbuz", "Mantilla", "Xiao"],
+        highlightAuthor: "Gurbuz",
+        year: "2025",
+        venue: "Water",
+        doi: "10.3390/w17203024",
+      },
       {
         idLabel: "J.4",
         filled: true,
@@ -51,6 +65,7 @@ export const publicationGroups: PublicationGroup[] = [
         highlightAuthor: "Gurbuz",
         year: "2024",
         venue: "Journal of Hydrology",
+        doi: "10.1016/j.jhydrol.2023.130504",
       },
       {
         idLabel: "J.3",
@@ -60,15 +75,18 @@ export const publicationGroups: PublicationGroup[] = [
         highlightAuthor: "Gurbuz",
         year: "2020",
         venue: "Environmental Earth Sciences 79(19)",
+        doi: "10.1007/s12665-020-09199-6",
       },
       {
         idLabel: "J.2",
         filled: true,
-        title: "Mapping spatial variability of annual rainfall under different return periods in Turkey",
+        title:
+          "Mapping spatial variability of annual rainfall under different return periods in Turkey: The application of various distribution functions and model selection techniques",
         authors: ["Tosunoglu", "Gurbuz"],
         highlightAuthor: "Gurbuz",
         year: "2019",
         venue: "Meteorological Applications",
+        doi: "10.1002/met.1793",
       },
       {
         idLabel: "J.1",
@@ -79,6 +97,7 @@ export const publicationGroups: PublicationGroup[] = [
         highlightAuthor: "Gurbuz",
         year: "2017",
         venue: "Iğdır Univ. J. Inst. Sci. & Tech.",
+        doi: "10.21597/jist.2017.201",
       },
     ],
   },
@@ -89,11 +108,12 @@ export const publicationGroups: PublicationGroup[] = [
         idLabel: "C.2",
         filled: false,
         title:
-          "Interpolation vs. Extrapolation in Flood Forecasting: Conceptual and Machine Learning Tools in Non-Stationary Scenarios",
+          "Interpolation vs. Extrapolation in Flood Forecasting: Exploring the Predictive Capability of Conceptual and Machine Learning Tools in Non-Stationary Scenarios",
         authors: ["Mantilla", "Barco", "Gurbuz", "Xiao", "Muñoz", "Lewkebandara", "Sharma"],
         highlightAuthor: "Gurbuz",
         year: "2024",
         venue: "EGU24",
+        doi: "10.5194/egusphere-egu24-13400",
       },
       {
         idLabel: "C.1",
@@ -112,6 +132,7 @@ export const publicationGroups: PublicationGroup[] = [
         highlightAuthor: "Gurbuz",
         year: "2020",
         venue: "M.Sc. Thesis, The University of Iowa",
+        doi: "10.17077/etd.005670",
       },
     ],
   },

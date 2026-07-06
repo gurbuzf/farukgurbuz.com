@@ -10,7 +10,7 @@ export function SiteFooter() {
     { label: t(copy.footer.email, lang), href: "mailto:gurbuzfrk@gmail.com" },
     { label: t(copy.footer.github, lang), href: "https://github.com/gurbuzf" },
     { label: t(copy.footer.linkedin, lang), href: "https://www.linkedin.com/in/faruk-gurbuz" },
-    { label: t(copy.footer.scholar, lang), href: "https://scholar.google.com" },
+    { label: t(copy.footer.scholar, lang), href: "https://scholar.google.com/citations?user=CVfKPpUAAAAJ&hl=tr" },
   ];
 
   return (

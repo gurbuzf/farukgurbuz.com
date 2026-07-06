@@ -14,7 +14,7 @@ export function HeroMap() {
   return (
     <div
       data-screen-label="Home — map sheet"
-      className="relative overflow-hidden flex flex-col gap-10 px-6 py-10 min-[1400px]:block min-[1400px]:px-0 min-[1400px]:py-0 min-[1400px]:gap-0 min-[1400px]:h-[max(740px,calc(100vh-210px))]"
+      className="relative overflow-hidden flex flex-col gap-10 px-6 py-10 min-[1400px]:block min-[1400px]:px-0 min-[1400px]:py-0 min-[1400px]:gap-0 min-[1400px]:flex-1 min-[1400px]:min-h-[740px]"
     >
       <div
         className="absolute inset-0 bg-cover bg-center pointer-events-none"

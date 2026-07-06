@@ -41,7 +41,18 @@ export default function PublicationsPage() {
                 </span>
                 <div>
                   <div className="font-display font-medium text-[16px] leading-[1.45] text-[var(--ink)]">
-                    {entry.title}
+                    <a
+                      href={
+                        entry.doi
+                          ? `https://doi.org/${entry.doi}`
+                          : "https://scholar.google.com/citations?user=CVfKPpUAAAAJ&hl=tr"
+                      }
+                      target="_blank"
+                      rel="noopener"
+                      className="text-[var(--ink)] no-underline"
+                    >
+                      {entry.title}
+                    </a>
                   </div>
                   <div className="mt-1.5 font-plex-mono text-[12.5px] text-[var(--mut)]">
                     {entry.authors.map((author, ai) => (
@@ -63,7 +74,7 @@ export default function PublicationsPage() {
 
       <div className="mt-6 font-plex-mono font-medium text-[12px] text-[var(--mut)]">
         {t(copy.pubs.fullRecord, lang)}{" "}
-        <a href="https://scholar.google.com" target="_blank" rel="noopener" className="text-[var(--acc)]">
+        <a href="https://scholar.google.com/citations?user=CVfKPpUAAAAJ&hl=tr" target="_blank" rel="noopener" className="text-[var(--acc)]">
           Google Scholar →
         </a>
       </div>
