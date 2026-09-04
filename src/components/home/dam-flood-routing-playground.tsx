@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAtlas } from "@/lib/atlas-provider";
 import { copy, t } from "@/content/copy";
 import {
@@ -17,19 +17,17 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Sliders,
   TrendingDown,
   Clock,
+  ShieldCheck,
   ShieldAlert,
   Waves,
-  Maximize2,
   ChevronDown,
   ChevronUp,
-  Info,
-  Layers,
   Sparkles,
-  ArrowRight,
   Calculator,
+  SlidersHorizontal,
+  Compass,
 } from "lucide-react";
 
 export function DamFloodRoutingPlayground() {
@@ -43,19 +41,18 @@ export function DamFloodRoutingPlayground() {
   // Simulation Animation State (Time scrubber t in hours)
   const [currentTimeHours, setCurrentTimeHours] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1); // 1x, 2x, 4x
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
 
-  // UI Accordion / Details toggle state
-  const [showMathGuide, setShowMathGuide] = useState<boolean>(true);
-  const [activeControlTab, setActiveControlTab] = useState<"dam" | "inflow" | "reservoir">("dam");
-  const [damViewMode, setDamViewMode] = useState<"profile" | "elevation">("profile");
+  // Controls mode: Dam Structure vs Flood Wave
+  const [controlsGroup, setControlsGroup] = useState<"structure" | "hydrology">("structure");
+  const [showMathGuide, setShowMathGuide] = useState<boolean>(false);
 
-  // Solve reservoir routing in real time (runs instantaneously on any parameter change)
+  // Solve reservoir routing in real time
   const { steps, summary } = useMemo(() => {
     return solveReservoirRouting(dam, inflow, 160);
   }, [dam, inflow]);
 
-  // Current interpolated state at currentTimeHours
+  // Current state at currentTimeHours
   const currentStep = useMemo(() => {
     if (steps.length === 0) return null;
     let closest = steps[0];
@@ -96,7 +93,7 @@ export function DamFloodRoutingPlayground() {
     return () => clearInterval(interval);
   }, [isPlaying, playbackSpeed, inflow.durationHours]);
 
-  // Handle Preset selection
+  // Preset Handler
   const handleApplyPreset = (presetId: string) => {
     const found = DAM_PRESETS.find((p) => p.id === presetId);
     if (!found) return;
@@ -107,7 +104,7 @@ export function DamFloodRoutingPlayground() {
     setIsPlaying(false);
   };
 
-  // Safe parameter updater ensuring physical geometry constraints (e.g. hSpill < hMax, lSpill <= lCrest)
+  // Safe parameter updaters
   const updateDamParam = (key: keyof DamParameters, value: number) => {
     setDam((prev) => {
       const next = { ...prev, [key]: value };
@@ -145,10 +142,9 @@ export function DamFloodRoutingPlayground() {
     setActivePreset("custom");
   };
 
-  // Dynamic status flags
   const isCurrentlySpilling = currentStage > dam.hSpill;
   const isCurrentlyOvertopping = currentStage > dam.hMax;
-  const freeboardCurrent = Math.max(0, dam.hMax - currentStage);
+  const freeboardNow = Math.max(0, dam.hMax - currentStage);
 
   return (
     <div className="w-full bg-[var(--atlas-card)] border-[1.5px] border-[var(--frame)] rounded-xl overflow-hidden shadow-[6px_6px_0_var(--shadow)] transition-all flex flex-col">
@@ -161,7 +157,7 @@ export function DamFloodRoutingPlayground() {
             </span>
             <span className="font-plex-mono text-[10px] text-[var(--mut)] flex items-center gap-1">
               <Sparkles size={11} className="text-amber-500" />
-              {lang === "tr" ? "M.Sc. Tezi Şekil 2.2 Hidrolik Formülasyonu" : "M.Sc. Thesis Figure 2.2 Hydraulics"}
+              {lang === "tr" ? "M.Sc. Tezi Şekil 2.2 Hidrolik Modeli" : "M.Sc. Thesis Figure 2.2 Hydraulics"}
             </span>
           </div>
           <h3 className="font-display font-bold text-[20px] sm:text-[24px] text-[var(--ink)] tracking-tight mt-1">
@@ -196,183 +192,161 @@ export function DamFloodRoutingPlayground() {
         </div>
       </div>
 
-      {/* ── Key Performance Metrics Bar ──────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 border-b border-[var(--line)] bg-[var(--paper)] divide-x divide-y sm:divide-y-0 divide-[var(--line)]">
-        {/* Metric 1: Peak Inflow */}
-        <div className="p-3.5 flex flex-col">
-          <span className="font-plex-mono text-[10px] font-semibold text-[var(--mut)] uppercase tracking-wider">
-            {t(copy.damLab.metrics.peakInflow, lang)}
-          </span>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="font-display font-bold text-[19px] sm:text-[22px] text-[#0284c7]">
-              {summary.peakInflow}
-            </span>
-            <span className="font-plex-mono text-[10px] text-[var(--mut)]">m³/s</span>
-          </div>
-          <span className="font-plex-mono text-[9px] text-[var(--mut)]">
-            @ t = {summary.timeToPeakInflowHours} h
-          </span>
-        </div>
-
-        {/* Metric 2: Peak Outflow */}
-        <div className="p-3.5 flex flex-col">
-          <span className="font-plex-mono text-[10px] font-semibold text-[var(--mut)] uppercase tracking-wider">
-            {t(copy.damLab.metrics.peakOutflow, lang)}
-          </span>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="font-display font-bold text-[19px] sm:text-[22px] text-[#059669]">
-              {summary.peakOutflow}
-            </span>
-            <span className="font-plex-mono text-[10px] text-[var(--mut)]">m³/s</span>
-          </div>
-          <span className="font-plex-mono text-[9px] text-[var(--mut)]">
-            @ t = {summary.timeToPeakOutflowHours} h
-          </span>
-        </div>
-
-        {/* Metric 3: Peak Attenuation (Flood Shaving) */}
-        <div className="p-3.5 flex flex-col bg-emerald-500/5">
-          <span className="font-plex-mono text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1">
-            <TrendingDown size={12} />
-            {t(copy.damLab.metrics.attenuation, lang)}
-          </span>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="font-display font-bold text-[19px] sm:text-[22px] text-emerald-600 dark:text-emerald-400">
-              -{summary.peakAttenuationPercent}%
-            </span>
-            <span className="font-plex-mono text-[10px] text-[var(--mut)]">
-              (-{summary.peakAttenuationM3s} m³/s)
-            </span>
-          </div>
-          <span className="font-plex-mono text-[9px] text-[var(--mut)]">
-            {lang === "tr" ? "Pik Sönümleme Başarısı" : "Peak Reduction Rate"}
-          </span>
-        </div>
-
-        {/* Metric 4: Flood Lag Time */}
-        <div className="p-3.5 flex flex-col">
-          <span className="font-plex-mono text-[10px] font-semibold text-[var(--mut)] uppercase tracking-wider flex items-center gap-1">
-            <Clock size={12} />
-            {t(copy.damLab.metrics.lagTime, lang)}
-          </span>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="font-display font-bold text-[19px] sm:text-[22px] text-[var(--ink)]">
-              +{summary.lagTimeHours}
-            </span>
-            <span className="font-plex-mono text-[10px] text-[var(--mut)]">
-              {lang === "tr" ? "saat" : "hours"}
-            </span>
-          </div>
-          <span className="font-plex-mono text-[9px] text-[var(--mut)]">
-            {lang === "tr" ? "Mansap Uyarı Zamanı" : "Downstream Warning Window"}
-          </span>
-        </div>
-
-        {/* Metric 5: Max Water Stage */}
-        <div className="p-3.5 flex flex-col">
-          <span className="font-plex-mono text-[10px] font-semibold text-[var(--mut)] uppercase tracking-wider">
-            {t(copy.damLab.metrics.maxStage, lang)}
-          </span>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="font-display font-bold text-[19px] sm:text-[22px] text-[var(--ink)]">
-              {summary.maxStage}
-            </span>
-            <span className="font-plex-mono text-[10px] text-[var(--mut)]">
-              m / {dam.hMax} m
-            </span>
-          </div>
-          <span className="font-plex-mono text-[9px] text-[var(--mut)]">
-            {summary.maxStage > dam.hSpill ? (lang === "tr" ? "Savak Aktif (H > Hsavak)" : "Spillway Active") : (lang === "tr" ? "Sadece Dip Savak" : "Orifice Only")}
-          </span>
-        </div>
-
-        {/* Metric 6: Freeboard / Overtopping Safety */}
-        <div
-          className={`p-3.5 flex flex-col transition-colors ${
-            summary.isOvertopped
-              ? "bg-rose-500/15 border-rose-500"
-              : "bg-emerald-500/5"
-          }`}
-        >
-          <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-            {summary.isOvertopped ? (
-              <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1 animate-pulse">
-                <ShieldAlert size={13} /> {t(copy.damLab.metrics.overtopping, lang)}
+      {/* ── THE CRITICAL WATER RESOURCES QUESTION DASHBOARD ────────────── */}
+      {/* Acts like a real water engineer's verdict: Safety vs Flood Mitigation */}
+      <div className="p-4 sm:p-5 bg-gradient-to-r from-[var(--paper)] via-[var(--atlas-card)] to-[var(--paper)] border-b border-[var(--line)]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+          {/* 1. Dam Safety Verdict */}
+          <div
+            className={`p-3.5 rounded-lg border flex flex-col justify-between transition-all ${
+              summary.isOvertopped
+                ? "bg-rose-500/10 border-rose-500/60 shadow-[0_0_12px_rgba(244,63,94,0.15)]"
+                : "bg-emerald-500/10 border-emerald-500/50"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider text-[var(--ink)]">
+                {lang === "tr" ? "1. BARAJ GÜVENLİK ANALİZİ" : "1. DAM CREST INTEGRITY"}
               </span>
-            ) : (
-              <span className="text-emerald-700 dark:text-emerald-400">
-                {t(copy.damLab.metrics.freeboard, lang)}
-              </span>
-            )}
-          </span>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span
-              className={`font-display font-bold text-[19px] sm:text-[22px] ${
-                summary.isOvertopped ? "text-rose-600 dark:text-rose-400" : "text-emerald-700 dark:text-emerald-400"
-              }`}
-            >
-              {summary.isOvertopped
-                ? `+${(summary.maxStage - dam.hMax).toFixed(2)} m (AŞIM)`
-                : `${summary.minFreeboard} m`}
-            </span>
+              {summary.isOvertopped ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-600 text-white font-plex-mono text-[10px] font-bold animate-pulse">
+                  <ShieldAlert size={12} /> {lang === "tr" ? "KRET AŞIMI TEHLİKESİ" : "OVERTOPPING HAZARD"}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-600 text-white font-plex-mono text-[10px] font-bold">
+                  <ShieldCheck size={12} /> {lang === "tr" ? "GÖVDE EMNİYETLİ" : "CREST SAFE"}
+                </span>
+              )}
+            </div>
+
+            <div className="my-2">
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-display text-[13px] text-[var(--mut)]">
+                  {lang === "tr" ? "Minimum Hava Payı:" : "Min Freeboard Margin:"}
+                </span>
+                <span
+                  className={`font-display font-bold text-[22px] tracking-tight ${
+                    summary.isOvertopped ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
+                  }`}
+                >
+                  {summary.isOvertopped
+                    ? `-${(summary.maxStage - dam.hMax).toFixed(2)} m`
+                    : `+${summary.minFreeboard.toFixed(2)} m`}
+                </span>
+              </div>
+              <p className="font-display text-[11.5px] text-[var(--ink2)] mt-0.5 leading-tight">
+                {summary.isOvertopped
+                  ? (lang === "tr"
+                      ? `Maksimum su kotu (${summary.maxStage} m), baraj kretini (${dam.hMax} m) aştı! Toprak/kaya dolgu gövdelerde yıkılma riski.`
+                      : `Peak stage (${summary.maxStage} m) overtops dam crest (${dam.hMax} m)! Catastrophic breach risk for embankment.`)
+                  : (lang === "tr"
+                      ? `En yüksek su kotu (${summary.maxStage} m), kret kotunun (${dam.hMax} m) altında kalarak emniyeti koruyor.`
+                      : `Peak stage (${summary.maxStage} m) stays below crest (${dam.hMax} m), preserving freeboard.`)}
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-[var(--line)]/60 flex items-center justify-between font-plex-mono text-[10px] text-[var(--mut)]">
+              <span>{lang === "tr" ? `Gövde: ${dam.hMax} m` : `Crest: ${dam.hMax} m`}</span>
+              <span>{lang === "tr" ? `Savak Kotu: ${dam.hSpill} m` : `Spillway: ${dam.hSpill} m`}</span>
+              <span>{lang === "tr" ? `Pik Kot: ${summary.maxStage} m` : `Max: ${summary.maxStage} m`}</span>
+            </div>
           </div>
-          <span className="font-plex-mono text-[9px] text-[var(--mut)]">
-            {summary.isOvertopped
-              ? (lang === "tr" ? "Gövde Kretini Aştı!" : "Water Spilled Over Crest!")
-              : (lang === "tr" ? "Kret Emniyet Payı" : "Safety Margin to Crest")}
-          </span>
+
+          {/* 2. Flood Peak Shaving (Attenuation) */}
+          <div className="p-3.5 rounded-lg border border-sky-500/40 bg-sky-500/5 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider text-[var(--ink)] flex items-center gap-1">
+                <TrendingDown size={12} className="text-sky-600" />
+                {lang === "tr" ? "2. TAŞKIN SÖNÜMLEME (TRAŞLAMA)" : "2. FLOOD PEAK ATTENUATION"}
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-sky-600 text-white font-plex-mono text-[10.5px] font-bold">
+                -{summary.peakAttenuationPercent}% {lang === "tr" ? "PİK KIRPMA" : "SHAVED"}
+              </span>
+            </div>
+
+            <div className="my-2">
+              <div className="flex items-baseline gap-2">
+                <span className="font-display font-bold text-[20px] text-[#0284c7]">
+                  {summary.peakInflow} m³/s
+                </span>
+                <span className="font-display text-[14px] text-[var(--mut)]">➔</span>
+                <span className="font-display font-bold text-[20px] text-[#059669]">
+                  {summary.peakOutflow} m³/s
+                </span>
+              </div>
+              <p className="font-display text-[11.5px] text-[var(--ink2)] mt-0.5 leading-tight">
+                {lang === "tr"
+                  ? `Rezervuar depolaması sayesinde mansaba akan en yüksek taşkın debisi ${summary.peakAttenuationM3s} m³/s azaltıldı.`
+                  : `Reservoir storage buffer cuts down peak flood discharge by ${summary.peakAttenuationM3s} m³/s before reaching downstream.`}
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-[var(--line)]/60 flex items-center justify-between font-plex-mono text-[10px] text-[var(--mut)]">
+              <span>{lang === "tr" ? "I(t) Gelen Pik" : "Peak Inflow"}</span>
+              <span>➔</span>
+              <span>{lang === "tr" ? "Q(t) Mansap Çıkış Piki" : "Peak Outflow"}</span>
+            </div>
+          </div>
+
+          {/* 3. Flood Warning Window (Lag Time) */}
+          <div className="p-3.5 rounded-lg border border-purple-500/30 bg-purple-500/5 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider text-[var(--ink)] flex items-center gap-1">
+                <Clock size={12} className="text-purple-600" />
+                {lang === "tr" ? "3. MANSAP ERKEN UYARI KAZANIMI" : "3. DOWNSTREAM WARNING LAG"}
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-purple-600 text-white font-plex-mono text-[10px] font-bold">
+                +{summary.lagTimeHours}h {lang === "tr" ? "GECİKME" : "LAG"}
+              </span>
+            </div>
+
+            <div className="my-2">
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-display text-[13px] text-[var(--mut)]">
+                  {lang === "tr" ? "Pik Varış Ertelemesi:" : "Flood Peak Delay:"}
+                </span>
+                <span className="font-display font-bold text-[22px] text-purple-700 dark:text-purple-400">
+                  +{summary.lagTimeHours} {lang === "tr" ? "saat" : "hours"}
+                </span>
+              </div>
+              <p className="font-display text-[11.5px] text-[var(--ink2)] mt-0.5 leading-tight">
+                {lang === "tr"
+                  ? `Gelen pik (${summary.timeToPeakInflowHours}. saat), rezervuar haznesinde tutularak çıkış piki ${summary.timeToPeakOutflowHours}. saate ertelendi.`
+                  : `Inflow peak (${summary.timeToPeakInflowHours}h) is held back; outflow peak doesn't hit until ${summary.timeToPeakOutflowHours}h, buying critical evacuation time.`}
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-[var(--line)]/60 flex items-center justify-between font-plex-mono text-[10px] text-[var(--mut)]">
+              <span>t_inflow: {summary.timeToPeakInflowHours} h</span>
+              <span>➔</span>
+              <span>t_outflow: {summary.timeToPeakOutflowHours} h</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── Main Interactive Workbench Grid (Isometric Illustration + Controls + Hydrograph) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
-        {/* ── LEFT / TOP: 2D Civil Engineering Dam Illustration (Cross-Section & Downstream Elevation) ── */}
-        <div className="lg:col-span-7 p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-[var(--line)] flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      {/* ── MAIN SPLIT VIEW: CRYSTAL-CLEAR DAM ILLUSTRATION + CONTROLS ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[var(--line)]">
+        {/* ── LEFT COLUMN (7 COLS): HIGH-LEGIBILITY DAM HYDRAULIC PROFILE ── */}
+        <div className="lg:col-span-7 p-4 sm:p-5 flex flex-col gap-3.5">
+          {/* Subheader Toolbar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[var(--acc)]" />
-              <h4 className="font-plex-mono text-[11px] font-bold uppercase tracking-wider text-[var(--ink)]">
-                {damViewMode === "profile"
-                  ? (lang === "tr" ? "2B HİDROLİK PROFİL (BARAJ EN KESİTİ)" : "2D HYDRAULIC PROFILE (DAM CROSS-SECTION)")
-                  : (lang === "tr" ? "2B MANSAP GÖRÜNÜŞÜ (KRET & SAVAK GENİŞLİĞİ)" : "2D DOWNSTREAM ELEVATION (CREST & SPILLWAY)")}
+              <span className="w-2 h-2 rounded-full bg-[var(--acc)]" />
+              <h4 className="font-plex-mono text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink)]">
+                {lang === "tr" ? "HİDROLİK BARAJ EN KESİTİ & AKIŞ KANITLARI" : "HYDRAULIC DAM PROFILE & FLOW REGIMES"}
               </h4>
             </div>
 
-            {/* View Mode Toggle & Flow Regime Pill */}
+            {/* Current Active Flow Regime Pill */}
             <div className="flex items-center gap-2">
-              {/* Toggle Buttons */}
-              <div className="inline-flex items-center p-0.5 rounded-md bg-[var(--line)] border border-[var(--frame)]">
-                <button
-                  type="button"
-                  onClick={() => setDamViewMode("profile")}
-                  className={`cursor-pointer px-2 py-1 rounded text-[10px] font-plex-mono font-semibold transition-all ${
-                    damViewMode === "profile"
-                      ? "bg-[var(--frame)] text-[var(--paper)] shadow-2xs font-bold"
-                      : "text-[var(--mut)] hover:text-[var(--ink)]"
-                  }`}
-                >
-                  {lang === "tr" ? "📐 Kesit" : "📐 Profile"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDamViewMode("elevation")}
-                  className={`cursor-pointer px-2 py-1 rounded text-[10px] font-plex-mono font-semibold transition-all ${
-                    damViewMode === "elevation"
-                      ? "bg-[var(--frame)] text-[var(--paper)] shadow-2xs font-bold"
-                      : "text-[var(--mut)] hover:text-[var(--ink)]"
-                  }`}
-                >
-                  {lang === "tr" ? "🏛️ Ön Görünüş" : "🏛️ Elevation"}
-                </button>
-              </div>
-
               <span
-                className={`font-plex-mono text-[9px] font-bold px-2 py-0.5 rounded ${
+                className={`font-plex-mono text-[10px] font-bold px-2.5 py-1 rounded shadow-2xs ${
                   isCurrentlyOvertopping
-                    ? "bg-rose-600 text-white animate-bounce"
+                    ? "bg-rose-600 text-white animate-pulse"
                     : isCurrentlySpilling
-                    ? "bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40"
-                    : "bg-sky-500/15 text-sky-700 dark:text-sky-400 border border-sky-500/30"
+                    ? "bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/50"
+                    : "bg-sky-500/15 text-sky-800 dark:text-sky-300 border border-sky-500/40"
                 }`}
               >
                 {t(currentFlowBreakdown.regimeName, lang)}
@@ -380,40 +354,40 @@ export function DamFloodRoutingPlayground() {
             </div>
           </div>
 
-          {/* 2D Minimalist Engineering Vector Canvas */}
-          <div className="relative w-full bg-[var(--paper)] border border-[var(--line)] rounded-lg overflow-hidden p-3 sm:p-5 shadow-inner">
+          {/* ── Crisp, High-Contrast SVG Engineering Cross-Section Canvas ── */}
+          <div className="relative w-full bg-[var(--paper)] border-[1.5px] border-[var(--frame)] rounded-lg overflow-hidden p-2 sm:p-3 shadow-inner">
             <svg
-              viewBox="0 0 720 320"
+              viewBox="0 0 780 340"
               className="w-full h-auto block select-none"
-              aria-label="2D Dam Engineering Hydraulic Diagram"
+              aria-label="Dam Hydraulics Profile"
             >
               <defs>
-                {/* Clean Water Gradient */}
-                <linearGradient id="clean-water" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.85" />
-                  <stop offset="100%" stopColor="#0284c7" stopOpacity="0.95" />
+                {/* Clean Water Body Gradient */}
+                <linearGradient id="eng-water-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.88" />
+                  <stop offset="100%" stopColor="#0284c7" stopOpacity="0.98" />
                 </linearGradient>
 
-                {/* Clean Concrete Dam Gradient */}
-                <linearGradient id="clean-dam" x1="0" y1="0" x2="1" y2="1">
+                {/* Dam Concrete Monolith Gradient */}
+                <linearGradient id="eng-dam-grad" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0%" stopColor={dark ? "#475569" : "#cbd5e1"} />
-                  <stop offset="100%" stopColor={dark ? "#1e293b" : "#94a3b8"} />
+                  <stop offset="100%" stopColor={dark ? "#1e293b" : "#64748b"} />
                 </linearGradient>
 
-                {/* Clean Overflow Water Cascade */}
-                <linearGradient id="clean-cascade" x1="0" y1="0" x2="0" y2="1">
+                {/* Spillway Cascade Flow Gradient */}
+                <linearGradient id="eng-spill-grad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#bae6fd" stopOpacity="0.95" />
-                  <stop offset="100%" stopColor="#0284c7" stopOpacity="0.85" />
+                  <stop offset="100%" stopColor="#0284c7" stopOpacity="0.90" />
                 </linearGradient>
               </defs>
 
-              {/* ══════════════════════════════════════════════════════════════ */}
-              {/* ── MODE 1: 2D HYDRAULIC PROFILE (DAM CROSS-SECTION) ───────── */}
-              {/* ══════════════════════════════════════════════════════════════ */}
-              {damViewMode === "profile" && (() => {
-                // Ground Baseline & Scale
-                const yBase = 250;
-                const scale = 7.0; // pixels per meter
+              {(() => {
+                // Geometry Constants (pixels)
+                const yBase = 270;        // Foundation line
+                const scale = 7.5;        // 7.5 pixels per meter of elevation
+                const xUp = 260;          // Dam upstream vertical face
+                const crestRoadWidth = 45; // Width of dam crest
+                const xCrestEnd = xUp + crestRoadWidth; // 305
 
                 const hMaxPx = dam.hMax * scale;
                 const hSpillPx = dam.hSpill * scale;
@@ -421,63 +395,47 @@ export function DamFloodRoutingPlayground() {
 
                 const yCrest = yBase - hMaxPx;
                 const ySpill = yBase - hSpillPx;
-                const yWater = Math.max(20, yBase - hWaterPx);
+                const yWater = Math.max(25, yBase - hWaterPx);
 
-                // Dam Profile Geometry
-                const xUp = 230;            // Upstream vertical face
-                const xCrestEnd = xUp + 40; // Crest road width
-                const xToe = xCrestEnd + hSpillPx * 0.85; // Downstream toe
-                const xOutEnd = 670;        // Downstream channel extent
-
-                // Bottom Orifice Geometry
-                const orifY = yBase - 18;
-                const orifDpx = Math.max(8, Math.min(22, dam.orificeDiameter * 4.5));
-                const orifExitX = xToe - 18;
+                // Downstream toe geometry
+                const xToe = xCrestEnd + hSpillPx * 0.95;
+                const orifY = yBase - 22;
+                const orifDpx = Math.max(10, Math.min(26, dam.orificeDiameter * 6));
+                const orifExitX = xToe - 20;
 
                 return (
-                  <g className="clean-dam-cross-section">
-                    {/* Ground Foundation Line */}
-                    <rect x="50" y={yBase} width="630" height="40" fill={dark ? "#18181b" : "#e2e8f0"} opacity={0.6} />
-                    <line x1="50" y1={yBase} x2="680" y2={yBase} stroke={dark ? "#52525b" : "#94a3b8"} strokeWidth={1.5} />
+                  <g className="eng-diagram">
+                    {/* 1. Geological Foundation Bedrock */}
+                    <rect x="20" y={yBase} width="740" height="55" fill={dark ? "#18181b" : "#e2e8f0"} opacity={0.8} />
+                    <line x1="20" y1={yBase} x2="760" y2={yBase} stroke={dark ? "#71717a" : "#94a3b8"} strokeWidth={2} />
+                    <text x="35" y={yBase + 28} fontSize="10.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill={dark ? "#a1a1aa" : "#64748b"}>
+                      {lang === "tr" ? "TEMEL KAYASI (DATUM z = 0.0 m)" : "BEDROCK FOUNDATION (DATUM z = 0.0 m)"}
+                    </text>
 
-                    {/* 1. Reservoir Water Body (Left of Dam) */}
-                    {hWaterPx > 1 && (
-                      <g className="clean-reservoir">
+                    {/* 2. Reservoir Water Pool (Upstream Left) */}
+                    {hWaterPx > 2 && (
+                      <g className="reservoir-pool">
                         <rect
-                          x="100"
+                          x="95"
                           y={yWater}
-                          width={xUp - 100}
+                          width={xUp - 95}
                           height={yBase - yWater}
-                          fill="url(#clean-water)"
+                          fill="url(#eng-water-grad)"
                         />
-                        {/* Water Surface Line */}
-                        <line
-                          x1="90"
-                          y1={yWater}
-                          x2={xUp}
-                          y2={yWater}
-                          stroke="#38bdf8"
-                          strokeWidth={2}
-                        />
-                        {/* Live Water Level Badge */}
-                        <g transform={`translate(145, ${yWater - 12})`}>
-                          <rect x="-35" y="-8" width="70" height="18" rx="4" fill="#0284c7" />
-                          <text
-                            x="0"
-                            y="4.5"
-                            textAnchor="middle"
-                            fontSize="10"
-                            fontFamily="var(--font-ibm-plex-mono), monospace"
-                            fontWeight="bold"
-                            fill="#ffffff"
-                          >
-                            h = {currentStage.toFixed(2)}m
+                        {/* Dynamic water ripples */}
+                        <line x1="90" y1={yWater} x2={xUp} y2={yWater} stroke="#38bdf8" strokeWidth={3} />
+                        
+                        {/* Upstream Inflow Arrow */}
+                        <g transform={`translate(130, ${Math.max(45, yWater - 25)})`}>
+                          <rect x="-40" y="-12" width="80" height="22" rx="4" fill="#0284c7" stroke="#38bdf8" strokeWidth={1} />
+                          <text x="0" y="3" textAnchor="middle" fontSize="10.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#ffffff">
+                            I(t) = {currentInflow.toFixed(1)} m³/s
                           </text>
                         </g>
                       </g>
                     )}
 
-                    {/* 2. Concrete Dam Monolith (Iconic Gravity Profile) */}
+                    {/* 3. Concrete Gravity Dam Monolith */}
                     <polygon
                       points={`
                         ${xUp},${yBase}
@@ -487,436 +445,342 @@ export function DamFloodRoutingPlayground() {
                         ${xToe},${yBase}
                         ${xUp},${yBase}
                       `}
-                      fill="url(#clean-dam)"
-                      stroke={dark ? "#64748b" : "#475569"}
-                      strokeWidth={2}
+                      fill="url(#eng-dam-grad)"
+                      stroke={dark ? "#94a3b8" : "#334155"}
+                      strokeWidth={2.5}
                       strokeLinejoin="round"
                     />
 
-                    {/* Spillway Level Dashed Reference Line across dam */}
+                    {/* Spillway Level Dashed Horizontal Notch Guide */}
                     <line
                       x1={xUp}
                       y1={ySpill}
                       x2={xCrestEnd}
                       y2={ySpill}
-                      stroke="#38bdf8"
-                      strokeWidth={1.5}
-                      strokeDasharray="4 3"
+                      stroke="#0284c7"
+                      strokeWidth={2}
+                      strokeDasharray="5 3"
                     />
 
-                    {/* 3. Bottom Outlet Orifice Pipe & Jet */}
-                    <g className="clean-orifice">
-                      {/* Pipe conduit */}
+                    {/* 4. Bottom Outlet Conduit (Dip Savak) & Jet */}
+                    <g className="bottom-orifice">
                       <rect
-                        x={xUp - 4}
+                        x={xUp - 6}
                         y={orifY - orifDpx / 2}
-                        width={orifExitX - xUp + 4}
+                        width={orifExitX - xUp + 6}
                         height={orifDpx}
                         fill={currentFlowBreakdown.qOrifice > 0 ? "#0284c7" : (dark ? "#09090b" : "#334155")}
                         stroke="#38bdf8"
-                        strokeWidth={1.2}
+                        strokeWidth={1.8}
                       />
-                      {/* Orifice Diameter Tag */}
-                      <text
-                        x={(xUp + orifExitX) / 2}
-                        y={orifY - orifDpx / 2 - 4}
-                        textAnchor="middle"
-                        fontSize="9"
-                        fontFamily="var(--font-ibm-plex-mono), monospace"
-                        fontWeight="bold"
-                        fill="#0284c7"
-                      >
-                        d = {dam.orificeDiameter}m
-                      </text>
 
-                      {/* Pressurized Water Jet */}
+                      {/* Orifice Diameter Callout Badge (High Contrast!) */}
+                      <g transform={`translate(${(xUp + orifExitX) / 2}, ${orifY - orifDpx / 2 - 16})`}>
+                        <rect x="-42" y="-10" width="84" height="20" rx="4" fill="var(--paper)" stroke="#0284c7" strokeWidth={1.5} />
+                        <text x="0" y="3.5" textAnchor="middle" fontSize="11" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#0284c7">
+                          Ø d = {dam.orificeDiameter} m
+                        </text>
+                      </g>
+
+                      {/* Pressurized Orifice Water Jet */}
                       {currentFlowBreakdown.qOrifice > 0.05 && (() => {
-                        const jetReach = Math.min(160, Math.max(50, Math.sqrt(currentStage) * 35));
+                        const jetReach = Math.min(180, Math.max(60, Math.sqrt(currentStage) * 38));
                         const jetEndX = orifExitX + jetReach;
 
                         return (
-                          <g className="clean-jet">
+                          <g className="orifice-jet">
                             <path
                               d={`
                                 M ${orifExitX} ${orifY - orifDpx / 2}
-                                Q ${orifExitX + jetReach * 0.45} ${orifY - 4} ${jetEndX} ${yBase}
-                                L ${jetEndX - 10} ${yBase}
-                                Q ${orifExitX + jetReach * 0.35} ${orifY + 4} ${orifExitX} ${orifY + orifDpx / 2}
+                                Q ${orifExitX + jetReach * 0.45} ${orifY - 6} ${jetEndX} ${yBase}
+                                L ${jetEndX - 14} ${yBase}
+                                Q ${orifExitX + jetReach * 0.35} ${orifY + 6} ${orifExitX} ${orifY + orifDpx / 2}
                                 Z
                               `}
-                              fill="url(#clean-cascade)"
+                              fill="url(#eng-spill-grad)"
                             />
-                            <text
-                              x={jetEndX + 8}
-                              y={yBase - 8}
-                              fontSize="9.5"
-                              fontFamily="var(--font-ibm-plex-mono), monospace"
-                              fontWeight="bold"
-                              fill="#0284c7"
-                            >
-                              q_orif: {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s
-                            </text>
+                            {/* Jet Discharge Rate Badge */}
+                            <g transform={`translate(${jetEndX + 55}, ${yBase - 15})`}>
+                              <rect x="-48" y="-10" width="96" height="20" rx="4" fill="var(--paper)" stroke="#0284c7" strokeWidth={1.5} />
+                              <text x="0" y="3.5" textAnchor="middle" fontSize="10.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#0284c7">
+                                q_dip: {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s
+                              </text>
+                            </g>
                           </g>
                         );
                       })()}
                     </g>
 
-                    {/* 4. Spillway Overflow Water Sheet (when h > H_spill) */}
-                    {isCurrentlySpilling && (() => {
+                    {/* 5. Spillway Overflow Flow Cascade (when h > H_spill) */}
+                    {isCurrentlySpilling ? (() => {
                       const head = currentStage - dam.hSpill;
-                      const sheetThick = Math.max(3, Math.min(18, head * scale * 0.5));
+                      const sheetThick = Math.max(4, Math.min(22, head * scale * 0.6));
 
                       return (
-                        <g className="clean-spillway-flow">
+                        <g className="spillway-flow">
                           <polygon
                             points={`
                               ${xCrestEnd},${ySpill}
                               ${xToe},${yBase}
-                              ${xToe + 60},${yBase}
-                              ${xToe + 60},${yBase - sheetThick * 0.7}
+                              ${xToe + 70},${yBase}
+                              ${xToe + 70},${yBase - sheetThick * 0.7}
                               ${xToe - sheetThick},${yBase - sheetThick}
                               ${xCrestEnd},${ySpill - sheetThick}
                             `}
-                            fill="url(#clean-cascade)"
-                            opacity={0.92}
+                            fill="url(#eng-spill-grad)"
+                            opacity={0.94}
                           />
-                          <text
-                            x={xCrestEnd + 45}
-                            y={ySpill + 25}
-                            fontSize="10"
-                            fontFamily="var(--font-ibm-plex-mono), monospace"
-                            fontWeight="bold"
-                            fill="#0369a1"
-                          >
-                            🌊 q_savak: {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s
-                          </text>
+                          {/* Spillway Flow Rate Badge */}
+                          <g transform={`translate(${xCrestEnd + 85}, ${ySpill + 25})`}>
+                            <rect x="-56" y="-11" width="112" height="22" rx="4" fill="#0284c7" stroke="#ffffff" strokeWidth={1.5} />
+                            <text x="0" y="4" textAnchor="middle" fontSize="11" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#ffffff">
+                              🌊 q_savak: {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s
+                            </text>
+                          </g>
                         </g>
                       );
-                    })()}
+                    })() : (
+                      /* Spillway Inactive Tag */
+                      <g transform={`translate(${xCrestEnd + 70}, ${ySpill + 25})`}>
+                        <rect x="-48" y="-10" width="96" height="20" rx="4" fill="var(--paper)" stroke="var(--line)" strokeWidth={1} />
+                        <text x="0" y="3.5" textAnchor="middle" fontSize="9.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="var(--mut)">
+                          {lang === "tr" ? "Savak Kuru (h ≤ H_savak)" : "Spillway Dry (h ≤ H_spill)"}
+                        </text>
+                      </g>
+                    )}
 
-                    {/* 5. Emergency Crest Overtopping (when h > H_max) */}
+                    {/* 6. Emergency Dam Crest Overtopping (when h > H_max) */}
                     {isCurrentlyOvertopping && (
-                      <g className="clean-overtop">
+                      <g className="crest-overtopping">
                         <rect
-                          x={xUp - 4}
+                          x={xUp - 8}
                           y={yWater}
-                          width={xCrestEnd - xUp + 8}
+                          width={xCrestEnd - xUp + 16}
                           height={yCrest - yWater}
                           fill="#ef4444"
-                          opacity={0.7}
+                          opacity={0.75}
                         />
-                        <rect x="200" y="10" width="220" height="22" rx="4" fill="#dc2626" />
-                        <text
-                          x="310"
-                          y="25"
-                          textAnchor="middle"
-                          fontSize="10"
-                          fontFamily="var(--font-ibm-plex-mono), monospace"
-                          fontWeight="bold"
-                          fill="#ffffff"
-                        >
-                          ⚠️ {lang === "tr" ? "KRET AŞIMI" : "CREST OVERTOPPING"} ({currentFlowBreakdown.qOvertopping.toFixed(1)} m³/s)
-                        </text>
+                        <g transform={`translate(320, 20)`}>
+                          <rect x="-110" y="-12" width="220" height="24" rx="4" fill="#dc2626" stroke="#ffffff" strokeWidth={1.5} />
+                          <text x="0" y="4.5" textAnchor="middle" fontSize="11.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#ffffff">
+                            🚨 {lang === "tr" ? "KRET AŞIMI" : "OVERTOPPING"}: {currentFlowBreakdown.qOvertopping.toFixed(1)} m³/s
+                          </text>
+                        </g>
                       </g>
                     )}
 
-                    {/* 6. Clean, Dedicated Vertical Elevation Axis on Far Left */}
-                    <g className="clean-elevation-axis" stroke="var(--ink)" strokeWidth={1}>
-                      {/* Vertical Datum Bar */}
-                      <line x1="80" y1={yBase} x2="80" y2={yCrest - 10} stroke="var(--line)" strokeWidth={2} />
+                    {/* 7. PROMINENT, READABLE ELEVATION DATUM RULER (Far Left) */}
+                    <g className="elevation-datum" strokeWidth={1.5}>
+                      {/* Vertical Datum Axis */}
+                      <line x1="85" y1={yBase} x2="85" y2={Math.min(yWater, yCrest) - 20} stroke="var(--line)" strokeWidth={2} />
 
-                      {/* 0.0m Datum */}
-                      <line x1="74" y1={yBase} x2="86" y2={yBase} />
-                      <text x="68" y={yBase + 3} textAnchor="end" fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fill="var(--mut)">
-                        0.0m
-                      </text>
-
-                      {/* H_spill Marker */}
-                      <line x1="74" y1={ySpill} x2="86" y2={ySpill} stroke="#0284c7" strokeWidth={1.5} />
-                      <text x="68" y={ySpill + 3} textAnchor="end" fontSize="9" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#0284c7">
-                        H_spill = {dam.hSpill}m
-                      </text>
-
-                      {/* H_max Dam Crest Marker */}
-                      <line x1="74" y1={yCrest} x2="86" y2={yCrest} stroke="var(--ink)" strokeWidth={1.5} />
-                      <text x="68" y={yCrest + 3} textAnchor="end" fontSize="9" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="var(--ink)">
-                        H_max = {dam.hMax}m
-                      </text>
-                    </g>
-                  </g>
-                );
-              })()}
-
-              {/* ══════════════════════════════════════════════════════════════ */}
-              {/* ── MODE 2: 2D DOWNSTREAM ELEVATION (CREST & SPILLWAY WIDTH) ── */}
-              {/* ══════════════════════════════════════════════════════════════ */}
-              {damViewMode === "elevation" && (() => {
-                const yBase = 250;
-                const scale = 7.0;
-                const hMaxPx = dam.hMax * scale;
-                const hSpillPx = dam.hSpill * scale;
-
-                const yCrest = yBase - hMaxPx;
-                const ySpill = yBase - hSpillPx;
-
-                const crestLeftX = 160;
-                const crestRightX = 580;
-                const totalWidthPx = crestRightX - crestLeftX;
-
-                const spillFrac = Math.min(0.75, Math.max(0.15, dam.lSpill / dam.lCrest));
-                const spillWidthPx = totalWidthPx * spillFrac;
-                const s1X = 370 - spillWidthPx / 2;
-                const s2X = 370 + spillWidthPx / 2;
-
-                const orifY = yBase - 20;
-                const orifRpx = Math.max(5, Math.min(14, dam.orificeDiameter * 3));
-
-                return (
-                  <g className="clean-dam-elevation">
-                    {/* Ground line */}
-                    <line x1="60" y1={yBase} x2="680" y2={yBase} stroke={dark ? "#52525b" : "#94a3b8"} strokeWidth={1.5} />
-
-                    {/* Dam Downstream Concrete Face */}
-                    <polygon
-                      points={`
-                        ${crestLeftX},${yBase}
-                        ${crestLeftX},${yCrest}
-                        ${s1X},${yCrest}
-                        ${s1X},${ySpill}
-                        ${s2X},${ySpill}
-                        ${s2X},${yCrest}
-                        ${crestRightX},${yCrest}
-                        ${crestRightX},${yBase}
-                      `}
-                      fill="url(#clean-dam)"
-                      stroke={dark ? "#64748b" : "#475569"}
-                      strokeWidth={2}
-                    />
-
-                    {/* Spillway Central Chute */}
-                    <polygon
-                      points={`${s1X},${ySpill} ${s2X},${ySpill} ${s2X},${yBase} ${s1X},${yBase}`}
-                      fill={dark ? "#1e293b" : "#e2e8f0"}
-                      stroke={dark ? "#475569" : "#cbd5e1"}
-                    />
-
-                    {/* Centered Bottom Outlet Orifice */}
-                    <circle cx="370" cy={orifY} r={orifRpx} fill="#020617" stroke="#38bdf8" strokeWidth={2} />
-                    <text
-                      x="370"
-                      y={orifY - orifRpx - 4}
-                      textAnchor="middle"
-                      fontSize="8.5"
-                      fontFamily="var(--font-ibm-plex-mono), monospace"
-                      fontWeight="bold"
-                      fill="#38bdf8"
-                    >
-                      d = {dam.orificeDiameter}m
-                    </text>
-
-                    {/* Spillway Overflow Down Chute */}
-                    {isCurrentlySpilling && (
-                      <g className="clean-elevation-spill">
-                        <polygon
-                          points={`${s1X + 2},${ySpill} ${s2X - 2},${ySpill} ${s2X - 2},${yBase} ${s1X + 2},${yBase}`}
-                          fill="url(#clean-cascade)"
-                          opacity={0.88}
-                        />
-                        <text
-                          x="370"
-                          y={(ySpill + yBase) / 2}
-                          textAnchor="middle"
-                          fontSize="10"
-                          fontFamily="var(--font-ibm-plex-mono), monospace"
-                          fontWeight="bold"
-                          fill="#0284c7"
-                          stroke="var(--paper)"
-                          strokeWidth={2}
-                          paintOrder="stroke fill"
-                        >
-                          🌊 q_savak = {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s
+                      {/* 0.0m Bedrock Marker */}
+                      <line x1="78" y1={yBase} x2="92" y2={yBase} stroke="var(--ink)" />
+                      <g transform={`translate(65, ${yBase})`}>
+                        <rect x="-24" y="-8" width="28" height="16" rx="3" fill="var(--paper)" stroke="var(--line)" />
+                        <text x="-10" y="3.5" textAnchor="middle" fontSize="9.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="var(--mut)">
+                          0.0m
                         </text>
                       </g>
+
+                      {/* Spillway Crest H_spill Marker */}
+                      <line x1="75" y1={ySpill} x2="xCrestEnd" y2={ySpill} stroke="#0284c7" strokeWidth={1.5} strokeDasharray="4 3" opacity={0.7} />
+                      <g transform={`translate(55, ${ySpill})`}>
+                        <rect x="-50" y="-11" width="60" height="22" rx="4" fill="#0284c7" stroke="#ffffff" strokeWidth={1} />
+                        <text x="-20" y="4" textAnchor="middle" fontSize="11" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#ffffff">
+                          {dam.hSpill}m
+                        </text>
+                      </g>
+
+                      {/* Dam Crest H_max Marker */}
+                      <line x1="75" y1={yCrest} x2="xCrestEnd" y2={yCrest} stroke="var(--ink)" strokeWidth={1.5} strokeDasharray="4 3" opacity={0.7} />
+                      <g transform={`translate(55, ${yCrest})`}>
+                        <rect x="-50" y="-11" width="60" height="22" rx="4" fill="var(--frame)" stroke="var(--paper)" strokeWidth={1} />
+                        <text x="-20" y="4" textAnchor="middle" fontSize="11" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="var(--paper)">
+                          {dam.hMax}m
+                        </text>
+                      </g>
+                    </g>
+
+                    {/* 8. HIGH-LEGIBILITY PROMINENT LABELS ON THE DAM ITSELF */}
+                    {/* Dam Crest Label Badge */}
+                    <g transform={`translate(${xCrestEnd + 80}, ${yCrest - 14})`}>
+                      <rect x="-70" y="-11" width="140" height="22" rx="4" fill="var(--paper)" stroke="var(--frame)" strokeWidth={1.5} />
+                      <text x="0" y="4" textAnchor="middle" fontSize="11.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="var(--ink)">
+                        🏔️ H_kret = {dam.hMax} m
+                      </text>
+                    </g>
+
+                    {/* Spillway Crest Label Badge */}
+                    <g transform={`translate(${xCrestEnd + 85}, ${ySpill - 14})`}>
+                      <rect x="-75" y="-11" width="150" height="22" rx="4" fill="var(--paper)" stroke="#0284c7" strokeWidth={1.5} />
+                      <text x="0" y="4" textAnchor="middle" fontSize="11" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#0284c7">
+                        🌊 H_savak = {dam.hSpill} m (L={dam.lSpill}m)
+                      </text>
+                    </g>
+
+                    {/* Floating Water Stage Badge */}
+                    <g transform={`translate(185, ${yWater - 14})`}>
+                      <rect x="-65" y="-11" width="130" height="22" rx="4" fill="#0284c7" stroke="#ffffff" strokeWidth={1.5} />
+                      <text x="0" y="4" textAnchor="middle" fontSize="11.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#ffffff">
+                        💧 h(t) = {currentStage.toFixed(2)} m
+                      </text>
+                    </g>
+
+                    {/* Freeboard Margin Bracket (when h < H_max) */}
+                    {freeboardNow > 0 && yCrest < yWater && (
+                      <g className="freeboard-bracket">
+                        <line x1={xUp - 16} y1={yWater} x2={xUp - 16} y2={yCrest} stroke="#10b981" strokeWidth={2} markerEnd="url(#arrow)" />
+                        <line x1={xUp - 22} y1={yWater} x2={xUp - 10} y2={yWater} stroke="#10b981" strokeWidth={2} />
+                        <line x1={xUp - 22} y1={yCrest} x2={xUp - 10} y2={yCrest} stroke="#10b981" strokeWidth={2} />
+                        <g transform={`translate(${xUp - 65}, ${(yWater + yCrest) / 2})`}>
+                          <rect x="-42" y="-10" width="84" height="20" rx="4" fill="var(--paper)" stroke="#10b981" strokeWidth={1.5} />
+                          <text x="0" y="3.5" textAnchor="middle" fontSize="10.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#059669">
+                            Pay: +{freeboardNow.toFixed(2)}m
+                          </text>
+                        </g>
+                      </g>
                     )}
-
-                    {/* Clean Top Dimensions: L_crest */}
-                    <g className="clean-dim-lcrest" stroke="var(--ink)" strokeWidth={1}>
-                      <line x1={crestLeftX} y1={yCrest - 16} x2={crestRightX} y2={yCrest - 16} strokeDasharray="3 2" />
-                      <line x1={crestLeftX} y1={yCrest - 20} x2={crestLeftX} y2={yCrest - 12} />
-                      <line x1={crestRightX} y1={yCrest - 20} x2={crestRightX} y2={yCrest - 12} />
-                      <text
-                        x="370"
-                        y={yCrest - 20}
-                        textAnchor="middle"
-                        fontSize="9.5"
-                        fontFamily="var(--font-ibm-plex-mono), monospace"
-                        fontWeight="bold"
-                        fill="var(--ink)"
-                      >
-                        L_crest = {dam.lCrest}m
-                      </text>
-                    </g>
-
-                    {/* Spillway Width: L_spill */}
-                    <g className="clean-dim-lspill" stroke="#0284c7" strokeWidth={1}>
-                      <line x1={s1X} y1={ySpill - 8} x2={s2X} y2={ySpill - 8} strokeDasharray="2 2" />
-                      <line x1={s1X} y1={ySpill - 12} x2={s1X} y2={ySpill - 4} />
-                      <line x1={s2X} y1={ySpill - 12} x2={s2X} y2={ySpill - 4} />
-                      <text
-                        x="370"
-                        y={ySpill - 11}
-                        textAnchor="middle"
-                        fontSize="9"
-                        fontFamily="var(--font-ibm-plex-mono), monospace"
-                        fontWeight="bold"
-                        fill="#0284c7"
-                      >
-                        L_spill = {dam.lSpill}m
-                      </text>
-                    </g>
-
-                    {/* Height Marks on Right */}
-                    <g className="clean-dim-heights" stroke="var(--ink)" strokeWidth={1}>
-                      <text x={crestRightX + 16} y={yCrest + 3} fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="var(--ink)">
-                        H_max: {dam.hMax}m
-                      </text>
-                      <text x={crestRightX + 16} y={ySpill + 3} fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#0284c7">
-                        H_spill: {dam.hSpill}m
-                      </text>
-                    </g>
                   </g>
                 );
               })()}
             </svg>
           </div>
 
-          {/* Real-Time Flow Discharge Summary Bar */}
-          <div className="p-3 bg-[var(--paper)] border border-[var(--line)] rounded-md flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+          {/* Real-Time Mass Balance Banner */}
+          <div className="p-3 bg-[var(--paper)] border border-[var(--line)] rounded-lg flex flex-wrap items-center justify-between gap-2 shadow-2xs font-plex-mono text-[11px]">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-plex-mono text-[11px] font-bold text-[var(--ink)]">
-                {lang === "tr" ? "ANLIK SU BÜTÇESİ (t = " : "INSTANTANEOUS WATER BALANCE (t = "}
+              <span className="font-bold text-[var(--ink)]">
+                {lang === "tr" ? "ANLIK AKIŞ DENGESİ (t = " : "WATER BALANCE (t = "}
                 {currentTimeHours.toFixed(1)} h)
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 font-plex-mono text-[11px]">
-              <span className="text-[#0284c7] font-semibold">
-                I(t): <strong className="font-bold text-[13px]">{currentInflow.toFixed(1)}</strong> m³/s
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-[#0284c7] font-bold">
+                I: {currentInflow.toFixed(1)} m³/s
               </span>
-              <span className="text-[var(--mut)]">→</span>
-              <span className="text-[#059669] font-semibold">
-                Q(t): <strong className="font-bold text-[13px]">{currentOutflow.toFixed(1)}</strong> m³/s
+              <span className="text-[var(--mut)]">➔</span>
+              <span className="text-[#059669] font-bold">
+                Q: {currentOutflow.toFixed(1)} m³/s
               </span>
               <span className="text-[var(--mut)]">|</span>
               <span className="text-[var(--ink)]">
-                {lang === "tr" ? "Dip Savak" : "Orifice"}: <strong>{currentFlowBreakdown.qOrifice.toFixed(1)}</strong> m³/s
+                Dip: <strong>{currentFlowBreakdown.qOrifice.toFixed(1)}</strong> m³/s
               </span>
               <span className="text-[var(--ink)]">
-                {lang === "tr" ? "Dolu Savak" : "Spillway"}: <strong>{currentFlowBreakdown.qSpillway.toFixed(1)}</strong> m³/s
+                Savak: <strong>{currentFlowBreakdown.qSpillway.toFixed(1)}</strong> m³/s
               </span>
               {currentFlowBreakdown.qOvertopping > 0 && (
                 <span className="text-rose-600 font-bold animate-pulse">
-                  {lang === "tr" ? "Kret Aşımı" : "Overtopping"}: {currentFlowBreakdown.qOvertopping.toFixed(1)} m³/s
+                  Kret Aşımı: {currentFlowBreakdown.qOvertopping.toFixed(1)} m³/s
                 </span>
               )}
             </div>
           </div>
         </div>
 
-        {/* ── RIGHT / BOTTOM: Interactive Controls & Coupled Hydrograph ── */}
-        <div className="lg:col-span-5 p-4 sm:p-6 flex flex-col gap-4">
-          {/* Navigation Control Tabs (Dam Structure vs Inflow Storm vs Reservoir Pool) */}
-          <div className="flex items-center justify-between border-b border-[var(--line)] pb-2">
-            <div className="flex items-center gap-1.5">
+        {/* ── RIGHT COLUMN (5 COLS): STREAMLINED CONTROLS & HYDROGRAPH ──── */}
+        <div className="lg:col-span-5 p-4 sm:p-5 flex flex-col gap-4">
+          {/* Controls Mode Switcher: 2 Essential Tabs instead of 3 scattered ones */}
+          <div className="flex items-center justify-between border-b border-[var(--line)] pb-2.5">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setActiveControlTab("dam")}
-                className={`cursor-pointer px-3 py-1.5 text-[11px] font-plex-mono rounded font-bold transition-all ${
-                  activeControlTab === "dam"
+                onClick={() => setControlsGroup("structure")}
+                className={`cursor-pointer px-3 py-1.5 text-[11.5px] font-plex-mono rounded font-bold transition-all flex items-center gap-1.5 ${
+                  controlsGroup === "structure"
                     ? "bg-[var(--frame)] text-[var(--paper)] shadow-xs"
                     : "text-[var(--mut)] hover:bg-[var(--paper)] hover:text-[var(--ink)]"
                 }`}
               >
-                {lang === "tr" ? "Baraj & Savak" : "Dam & Spillway"}
+                <SlidersHorizontal size={13} />
+                {lang === "tr" ? "Baraj & Savak Boyutları" : "Dam & Spillway Design"}
               </button>
               <button
                 type="button"
-                onClick={() => setActiveControlTab("inflow")}
-                className={`cursor-pointer px-3 py-1.5 text-[11px] font-plex-mono rounded font-bold transition-all ${
-                  activeControlTab === "inflow"
+                onClick={() => setControlsGroup("hydrology")}
+                className={`cursor-pointer px-3 py-1.5 text-[11.5px] font-plex-mono rounded font-bold transition-all flex items-center gap-1.5 ${
+                  controlsGroup === "hydrology"
                     ? "bg-[var(--frame)] text-[var(--paper)] shadow-xs"
                     : "text-[var(--mut)] hover:bg-[var(--paper)] hover:text-[var(--ink)]"
                 }`}
               >
-                {lang === "tr" ? "Taşkın Girişi I(t)" : "Inflow Hydrograph"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveControlTab("reservoir")}
-                className={`cursor-pointer px-3 py-1.5 text-[11px] font-plex-mono rounded font-bold transition-all ${
-                  activeControlTab === "reservoir"
-                    ? "bg-[var(--frame)] text-[var(--paper)] shadow-xs"
-                    : "text-[var(--mut)] hover:bg-[var(--paper)] hover:text-[var(--ink)]"
-                }`}
-              >
-                {lang === "tr" ? "Rezervuar Alanı" : "Reservoir Pool"}
+                <Waves size={13} />
+                {lang === "tr" ? "Gelen Taşkın Dalgası" : "Inflow Hydrograph"}
               </button>
             </div>
 
             <span className="font-plex-mono text-[10px] text-[var(--mut)] hidden sm:inline">
-              ⚡ {lang === "tr" ? "Kaydırıcılarla Anlık Öteleme" : "Instant Level-Pool Routing"}
+              ⚡ {lang === "tr" ? "Anlık RK4 Öteleme" : "Real-Time RK4"}
             </span>
           </div>
 
-          {/* Tab 1: Dam Structure & Hydraulic Outlet Parameters */}
-          {activeControlTab === "dam" && (
-            <div className="flex flex-col gap-3.5 bg-[var(--paper)] p-4 border border-[var(--line)] rounded-lg shadow-2xs">
-              {/* Slider: Dam Height H_max */}
+          {/* GROUP 1: DAM & RESERVOIR STRUCTURAL PARAMETERS */}
+          {controlsGroup === "structure" && (
+            <div className="flex flex-col gap-3 bg-[var(--paper)] p-4 border border-[var(--line)] rounded-lg shadow-2xs">
+              {/* Slider 1: Dam Crest Height H_max */}
               <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-plex-mono text-[11px]">
-                  <span className="text-[var(--ink)] font-semibold">
-                    {lang === "tr" ? "Baraj Kret Yüksekliği (H_maks):" : "Dam Crest Height (H_max):"}
+                <div className="flex justify-between items-baseline font-plex-mono text-[11.5px]">
+                  <span className="text-[var(--ink)] font-bold">
+                    {lang === "tr" ? "Baraj Kret Kotu (H_kret):" : "Dam Crest Elevation (H_crest):"}
                   </span>
-                  <span className="font-bold text-[var(--ink)]">{dam.hMax} m</span>
+                  <span className="font-bold text-[13px] text-[var(--ink)] px-2 py-0.5 rounded bg-[var(--atlas-card)] border border-[var(--line)]">
+                    {dam.hMax} m
+                  </span>
                 </div>
                 <input
                   type="range"
                   min={10}
-                  max={35}
+                  max={32}
                   step={0.5}
                   value={dam.hMax}
                   onChange={(e) => updateDamParam("hMax", Number(e.target.value))}
                   className="w-full accent-[var(--acc)] cursor-pointer"
                 />
+                <span className="text-[10px] text-[var(--mut)] leading-tight">
+                  {lang === "tr"
+                    ? "Kret ne kadar yüksekse hava payı o kadar artar ve aşım riski önlenir."
+                    : "Higher crest increases safety freeboard margin and prevents overtopping."}
+                </span>
               </div>
 
-              {/* Slider: Spillway Level H_spill */}
+              {/* Slider 2: Spillway Crest Level H_spill */}
               <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-plex-mono text-[11px]">
-                  <span className="text-[var(--ink)] font-semibold">
-                    {lang === "tr" ? "Dolu Savak Kret Kotu (H_savak):" : "Spillway Crest Level (H_spill):"}
+                <div className="flex justify-between items-baseline font-plex-mono text-[11.5px]">
+                  <span className="text-[var(--ink)] font-bold">
+                    {lang === "tr" ? "Dolu Savak Kotu (H_savak):" : "Spillway Crest Level (H_spill):"}
                   </span>
-                  <span className="font-bold text-[#0284c7]">{dam.hSpill} m</span>
+                  <span className="font-bold text-[13px] text-[#0284c7] px-2 py-0.5 rounded bg-[var(--atlas-card)] border border-[var(--line)]">
+                    {dam.hSpill} m
+                  </span>
                 </div>
                 <input
                   type="range"
-                  min={5}
+                  min={6}
                   max={dam.hMax - 0.5}
                   step={0.5}
                   value={dam.hSpill}
                   onChange={(e) => updateDamParam("hSpill", Number(e.target.value))}
                   className="w-full accent-[#0284c7] cursor-pointer"
                 />
+                <span className="text-[10px] text-[var(--mut)] leading-tight">
+                  {lang === "tr"
+                    ? "Su kotu bu seviyeyi aşınca dolu savak devreye girer."
+                    : "Water level above this elevation triggers emergency weir discharge."}
+                </span>
               </div>
 
-              {/* Slider: Spillway Length L_spill */}
+              {/* Slider 3: Spillway Width L_spill */}
               <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-plex-mono text-[11px]">
-                  <span className="text-[var(--ink)] font-semibold">
-                    {lang === "tr" ? "Dolu Savak Kret Genişliği (L_savak):" : "Spillway Width (L_spill):"}
+                <div className="flex justify-between items-baseline font-plex-mono text-[11.5px]">
+                  <span className="text-[var(--ink)] font-bold">
+                    {lang === "tr" ? "Dolu Savak Genişliği (L_savak):" : "Spillway Crest Width (L_spill):"}
                   </span>
-                  <span className="font-bold text-[#0284c7]">{dam.lSpill} m</span>
+                  <span className="font-bold text-[13px] text-[#0284c7] px-2 py-0.5 rounded bg-[var(--atlas-card)] border border-[var(--line)]">
+                    {dam.lSpill} m
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -927,15 +791,22 @@ export function DamFloodRoutingPlayground() {
                   onChange={(e) => updateDamParam("lSpill", Number(e.target.value))}
                   className="w-full accent-[#0284c7] cursor-pointer"
                 />
+                <span className="text-[10px] text-[var(--mut)] leading-tight">
+                  {lang === "tr"
+                    ? "Geniş savak suyu daha hızlı tahliye eder, barajı korur fakat mansaba daha yüksek pik iletir."
+                    : "Wider weir discharges water faster, protecting crest but increasing downstream peak."}
+                </span>
               </div>
 
-              {/* Slider: Orifice Diameter d */}
+              {/* Slider 4: Bottom Outlet Diameter d */}
               <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-plex-mono text-[11px]">
-                  <span className="text-[var(--ink)] font-semibold">
-                    {lang === "tr" ? "Dip Savak Çapı (d):" : "Bottom Orifice Diameter (d):"}
+                <div className="flex justify-between items-baseline font-plex-mono text-[11.5px]">
+                  <span className="text-[var(--ink)] font-bold">
+                    {lang === "tr" ? "Dip Savak Orifis Çapı (d):" : "Bottom Outlet Diameter (d):"}
                   </span>
-                  <span className="font-bold text-sky-600 dark:text-sky-400">{dam.orificeDiameter} m</span>
+                  <span className="font-bold text-[13px] text-sky-600 dark:text-sky-400 px-2 py-0.5 rounded bg-[var(--atlas-card)] border border-[var(--line)]">
+                    Ø {dam.orificeDiameter} m
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -946,36 +817,48 @@ export function DamFloodRoutingPlayground() {
                   onChange={(e) => updateDamParam("orificeDiameter", Number(e.target.value))}
                   className="w-full accent-sky-600 cursor-pointer"
                 />
+                <span className="text-[10px] text-[var(--mut)] leading-tight">
+                  {lang === "tr"
+                    ? "Dip savak dip seviyeden kontrollü boşalım yaparak taşkın öncesi hazneyi boşaltır."
+                    : "Low-level orifice empties bottom pool and throttles initial flood stages."}
+                </span>
               </div>
 
-              {/* Slider: Total Crest Length L_crest */}
+              {/* Slider 5: Reservoir Surface Area */}
               <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-plex-mono text-[11px]">
-                  <span className="text-[var(--ink)] font-semibold">
-                    {lang === "tr" ? "Toplam Kret Uzunluğu (L_kret):" : "Total Crest Length (L_crest):"}
+                <div className="flex justify-between items-baseline font-plex-mono text-[11.5px]">
+                  <span className="text-[var(--ink)] font-bold">
+                    {lang === "tr" ? "Rezervuar Göl Yüzey Alanı (A_göl):" : "Reservoir Surface Area (A_res):"}
                   </span>
-                  <span className="font-bold text-[var(--ink)]">{dam.lCrest} m</span>
+                  <span className="font-bold text-[13px] text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded bg-[var(--atlas-card)] border border-[var(--line)]">
+                    {dam.reservoirAreaKm2} km²
+                  </span>
                 </div>
                 <input
                   type="range"
-                  min={30}
-                  max={150}
-                  step={5}
-                  value={dam.lCrest}
-                  onChange={(e) => updateDamParam("lCrest", Number(e.target.value))}
-                  className="w-full accent-[var(--acc)] cursor-pointer"
+                  min={0.15}
+                  max={3.0}
+                  step={0.05}
+                  value={dam.reservoirAreaKm2}
+                  onChange={(e) => updateDamParam("reservoirAreaKm2", Number(e.target.value))}
+                  className="w-full accent-emerald-600 cursor-pointer"
                 />
+                <span className="text-[10px] text-[var(--mut)] leading-tight">
+                  {lang === "tr"
+                    ? "Göl alanı büyüdükçe rezervuar daha fazla taşkın hacmi depolar ve piki daha güçlü tıraşlar."
+                    : "Larger reservoir pool stores massive flood volume and dramatically flattens outflow."}
+                </span>
               </div>
             </div>
           )}
 
-          {/* Tab 2: Inflow Flood Hydrograph Parameters */}
-          {activeControlTab === "inflow" && (
-            <div className="flex flex-col gap-3.5 bg-[var(--paper)] p-4 border border-[var(--line)] rounded-lg shadow-2xs">
-              {/* Shape Selector */}
+          {/* GROUP 2: INFLOW FLOOD HYDROGRAPH (THE THREAT) */}
+          {controlsGroup === "hydrology" && (
+            <div className="flex flex-col gap-3 bg-[var(--paper)] p-4 border border-[var(--line)] rounded-lg shadow-2xs">
+              {/* Hydrograph Shape */}
               <div className="flex flex-col gap-1.5">
-                <span className="font-plex-mono text-[11px] font-semibold text-[var(--ink)]">
-                  {t(copy.damLab.shapes.gamma, lang)}
+                <span className="font-plex-mono text-[11px] font-bold text-[var(--ink)]">
+                  {lang === "tr" ? "Taşkın Hidrograf Şekli:" : "Inflow Hydrograph Shape:"}
                 </span>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(["gamma", "triangular", "trapezoid"] as HydrographShape[]).map((shp) => (
@@ -983,7 +866,7 @@ export function DamFloodRoutingPlayground() {
                       key={shp}
                       type="button"
                       onClick={() => updateInflowParam("shape", shp)}
-                      className={`cursor-pointer px-2 py-1.5 text-[10.5px] font-plex-mono rounded border transition-all ${
+                      className={`cursor-pointer px-2 py-1.5 text-[11px] font-plex-mono rounded border transition-all ${
                         inflow.shape === shp
                           ? "bg-[var(--acc)] text-white border-[var(--acc)] font-bold shadow-xs"
                           : "bg-[var(--atlas-card)] text-[var(--ink2)] border-[var(--line)] hover:bg-[var(--paper)]"
@@ -997,16 +880,18 @@ export function DamFloodRoutingPlayground() {
 
               {/* Slider: Peak Inflow I_peak */}
               <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-plex-mono text-[11px]">
-                  <span className="text-[var(--ink)] font-semibold">
-                    {lang === "tr" ? "Taşkın Pik Debisi (I_pik):" : "Peak Inflow Rate (I_peak):"}
+                <div className="flex justify-between items-baseline font-plex-mono text-[11.5px]">
+                  <span className="text-[var(--ink)] font-bold">
+                    {lang === "tr" ? "Gelen Taşkın Pik Debisi (I_pik):" : "Peak Inflow Rate (I_peak):"}
                   </span>
-                  <span className="font-bold text-[#0284c7]">{inflow.peakInflow} m³/s</span>
+                  <span className="font-bold text-[13px] text-[#0284c7] px-2 py-0.5 rounded bg-[var(--atlas-card)] border border-[var(--line)]">
+                    {inflow.peakInflow} m³/s
+                  </span>
                 </div>
                 <input
                   type="range"
-                  min={20}
-                  max={240}
+                  min={25}
+                  max={250}
                   step={5}
                   value={inflow.peakInflow}
                   onChange={(e) => updateInflowParam("peakInflow", Number(e.target.value))}
@@ -1014,32 +899,15 @@ export function DamFloodRoutingPlayground() {
                 />
               </div>
 
-              {/* Slider: Time to Peak T_p */}
+              {/* Slider: Flood Duration */}
               <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-plex-mono text-[11px]">
-                  <span className="text-[var(--ink)] font-semibold">
-                    {lang === "tr" ? "Pik Varış Zamanı (T_pik):" : "Time to Peak (T_p):"}
+                <div className="flex justify-between items-baseline font-plex-mono text-[11.5px]">
+                  <span className="text-[var(--ink)] font-bold">
+                    {lang === "tr" ? "Toplam Taşkın Süresi (T_süre):" : "Total Flood Duration (T_d):"}
                   </span>
-                  <span className="font-bold text-[var(--ink)]">{inflow.timeToPeakHours} h</span>
-                </div>
-                <input
-                  type="range"
-                  min={1.5}
-                  max={12}
-                  step={0.5}
-                  value={inflow.timeToPeakHours}
-                  onChange={(e) => updateInflowParam("timeToPeakHours", Number(e.target.value))}
-                  className="w-full accent-[var(--acc)] cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Flood Duration T_d */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-plex-mono text-[11px]">
-                  <span className="text-[var(--ink)] font-semibold">
-                    {lang === "tr" ? "Toplam Taşkın Süresi (T_süre):" : "Flood Duration (T_d):"}
+                  <span className="font-bold text-[13px] text-[var(--ink)] px-2 py-0.5 rounded bg-[var(--atlas-card)] border border-[var(--line)]">
+                    {inflow.durationHours} h
                   </span>
-                  <span className="font-bold text-[var(--ink)]">{inflow.durationHours} h</span>
                 </div>
                 <input
                   type="range"
@@ -1051,43 +919,16 @@ export function DamFloodRoutingPlayground() {
                   className="w-full accent-[var(--acc)] cursor-pointer"
                 />
               </div>
-            </div>
-          )}
 
-          {/* Tab 3: Reservoir Capacity & Pool Parameters */}
-          {activeControlTab === "reservoir" && (
-            <div className="flex flex-col gap-3.5 bg-[var(--paper)] p-4 border border-[var(--line)] rounded-lg shadow-2xs">
-              {/* Slider: Reservoir Area A_res */}
+              {/* Slider: Initial Pool Stage h0 */}
               <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-plex-mono text-[11px]">
-                  <span className="text-[var(--ink)] font-semibold">
-                    {lang === "tr" ? "Göl Yüzey Alanı (A_göl):" : "Reservoir Surface Area (A_res):"}
+                <div className="flex justify-between items-baseline font-plex-mono text-[11.5px]">
+                  <span className="text-[var(--ink)] font-bold">
+                    {lang === "tr" ? "Başlangıç Rezervuar Su Kotu (h_0):" : "Initial Pool Water Stage (h_0):"}
                   </span>
-                  <span className="font-bold text-[#059669]">
-                    {dam.reservoirAreaKm2} km² ({Math.round(dam.reservoirAreaKm2 * 100)} ha)
+                  <span className="font-bold text-[13px] text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded bg-[var(--atlas-card)] border border-[var(--line)]">
+                    {dam.h0} m
                   </span>
-                </div>
-                <input
-                  type="range"
-                  min={0.15}
-                  max={3.0}
-                  step={0.05}
-                  value={dam.reservoirAreaKm2}
-                  onChange={(e) => updateDamParam("reservoirAreaKm2", Number(e.target.value))}
-                  className="w-full accent-emerald-600 cursor-pointer"
-                />
-                <span className="text-[10px] text-[var(--mut)]">
-                  {lang === "tr" ? "Alan büyüdükçe rezervuar daha fazla su depolar ve çıkış debisini daha çok kırpar." : "Larger lake area stores more volume and flattens the outflow hydrograph."}
-                </span>
-              </div>
-
-              {/* Slider: Initial Water Level h0 */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-plex-mono text-[11px]">
-                  <span className="text-[var(--ink)] font-semibold">
-                    {lang === "tr" ? "Başlangıç Su Seviyesi (h_0):" : "Initial Pool Stage (h_0):"}
-                  </span>
-                  <span className="font-bold text-[#0284c7]">{dam.h0} m</span>
                 </div>
                 <input
                   type="range"
@@ -1096,22 +937,22 @@ export function DamFloodRoutingPlayground() {
                   step={0.5}
                   value={dam.h0}
                   onChange={(e) => updateDamParam("h0", Number(e.target.value))}
-                  className="w-full accent-[#0284c7] cursor-pointer"
+                  className="w-full accent-purple-600 cursor-pointer"
                 />
-                <span className="text-[10px] text-[var(--mut)]">
+                <span className="text-[10px] text-[var(--mut)] leading-tight">
                   {dam.h0 === 0
-                    ? (lang === "tr" ? "Kuru Taşkın Kapanı Modu (Boş Hazne)" : "Dry detention basin mode (Empty)")
-                    : (lang === "tr" ? "Dolu savak kotuna kadar dolu rezervuar" : "Reservoir with conservation storage pool")}
+                    ? (lang === "tr" ? "Kuru Taşkın Kapanı Modu (Tamamen boş hazne)" : "Dry detention basin mode (Empty reservoir)")
+                    : (lang === "tr" ? "Dolu rezervuar (Hazne su tutmuş durumda başlar)" : "Standard conservation pool before flood arrives")}
                 </span>
               </div>
             </div>
           )}
 
-          {/* Simulation Time Scrubber & Playback Controls */}
-          <div className="p-3 bg-[var(--paper)] border border-[var(--line)] rounded-lg flex flex-col gap-2.5 shadow-2xs">
+          {/* Time Scrubber & Simulation Animation Bar */}
+          <div className="p-3 bg-[var(--paper)] border border-[var(--line)] rounded-lg flex flex-col gap-2 shadow-2xs">
             <div className="flex items-center justify-between">
-              <span className="font-plex-mono text-[10px] font-bold text-[var(--ink)] uppercase tracking-wider">
-                {t(copy.damLab.controls.timeScrubber, lang)} <strong>{currentTimeHours.toFixed(1)} h</strong> / {inflow.durationHours} h
+              <span className="font-plex-mono text-[11px] font-bold text-[var(--ink)] uppercase tracking-wider">
+                {lang === "tr" ? "ZAMAN SİMÜLASYONU:" : "TIME SCRUBBER:"} <strong>{currentTimeHours.toFixed(1)} h</strong> / {inflow.durationHours} h
               </span>
 
               <div className="flex items-center gap-1.5">
@@ -1144,7 +985,6 @@ export function DamFloodRoutingPlayground() {
               </div>
             </div>
 
-            {/* Time progress slider */}
             <input
               type="range"
               min={0}
@@ -1159,33 +999,32 @@ export function DamFloodRoutingPlayground() {
             />
           </div>
 
-          {/* ── Coupled Inflow vs Outflow Hydrograph & Stage Chart ── */}
+          {/* ── Coupled Inflow-Outflow Hydrograph Chart ───────────────── */}
           <div className="bg-[var(--paper)] border border-[var(--line)] rounded-lg p-3 sm:p-4 flex flex-col gap-2 shadow-2xs">
             <div className="flex items-center justify-between">
               <span className="font-plex-mono text-[11px] font-bold text-[var(--ink)] uppercase tracking-wider">
-                {lang === "tr" ? "GİRİŞ-ÇIKIŞ TAŞKIN HİDROGRAFI (I vs Q vs h)" : "INFLOW-OUTFLOW HYDROGRAPH (I vs Q vs h)"}
+                {lang === "tr" ? "TAŞKIN HİDROGRAFI (I vs Q vs h)" : "FLOOD HYDROGRAPH (I vs Q vs h)"}
               </span>
-              <div className="flex items-center gap-3 font-plex-mono text-[9.5px]">
-                <span className="flex items-center gap-1 text-[#0284c7] font-semibold">
+              <div className="flex items-center gap-3 font-plex-mono text-[10px]">
+                <span className="flex items-center gap-1 text-[#0284c7] font-bold">
                   <span className="w-2.5 h-1 bg-[#0284c7] rounded-xs" /> I(t) Giriş
                 </span>
                 <span className="flex items-center gap-1 text-[#059669] font-bold">
                   <span className="w-2.5 h-1 bg-[#059669] rounded-xs" /> Q(t) Çıkış
                 </span>
-                <span className="flex items-center gap-1 text-purple-600 font-semibold">
-                  <span className="w-2 h-0.5 border-t border-dashed border-purple-600" /> h(t) Su Kotu
+                <span className="flex items-center gap-1 text-purple-600 font-bold">
+                  <span className="w-2 h-0.5 border-t border-dashed border-purple-600" /> h(t) Kot
                 </span>
               </div>
             </div>
 
-            {/* Hydrograph SVG Chart */}
             {(() => {
               const svgW = 480;
-              const svgH = 210;
+              const svgH = 190;
               const padL = 40;
               const padR = 35;
-              const padT = 20;
-              const padB = 26;
+              const padT = 18;
+              const padB = 24;
               const plotW = svgW - padL - padR;
               const plotH = svgH - padT - padB;
 
@@ -1193,7 +1032,6 @@ export function DamFloodRoutingPlayground() {
               const maxH = Math.max(dam.hMax, summary.maxStage) * 1.1;
               const maxT = inflow.durationHours;
 
-              // Generate SVG points for Inflow and Outflow
               const inflowPts = steps.map((s) => {
                 const x = padL + (s.timeHours / maxT) * plotW;
                 const y = padT + plotH - (s.inflow / maxQ) * plotH;
@@ -1206,7 +1044,6 @@ export function DamFloodRoutingPlayground() {
                 return `${x.toFixed(1)},${y.toFixed(1)}`;
               });
 
-              // Generate SVG points for Stage curve h(t)
               const stagePts = steps.map((s) => {
                 const x = padL + (s.timeHours / maxT) * plotW;
                 const y = padT + plotH - (s.stage / maxH) * plotH;
@@ -1218,203 +1055,71 @@ export function DamFloodRoutingPlayground() {
               return (
                 <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-auto block select-none">
                   <defs>
-                    <linearGradient id="inflow-area-grad" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="chart-inflow-grad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#0284c7" stopOpacity="0.25" />
                       <stop offset="100%" stopColor="#0284c7" stopOpacity="0.02" />
                     </linearGradient>
-                    <linearGradient id="outflow-area-grad" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="chart-outflow-grad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#059669" stopOpacity="0.35" />
                       <stop offset="100%" stopColor="#059669" stopOpacity="0.03" />
                     </linearGradient>
                   </defs>
 
-                  {/* Horizontal grid lines */}
+                  {/* Grid Lines */}
                   {[0.25, 0.5, 0.75, 1.0].map((frac) => {
                     const y = padT + plotH * (1 - frac);
                     const qVal = Math.round(maxQ * frac);
                     return (
-                      <g key={`grid-y-${frac}`}>
-                        <line
-                          x1={padL}
-                          y1={y}
-                          x2={padL + plotW}
-                          y2={y}
-                          stroke="var(--line)"
-                          strokeWidth={0.8}
-                          strokeDasharray="3 3"
-                        />
-                        <text
-                          x={padL - 4}
-                          y={y + 3}
-                          textAnchor="end"
-                          fontSize="8"
-                          fontFamily="var(--font-ibm-plex-mono), monospace"
-                          fill="var(--mut)"
-                        >
+                      <g key={`chart-grid-${frac}`}>
+                        <line x1={padL} y1={y} x2={padL + plotW} y2={y} stroke="var(--line)" strokeWidth={0.8} strokeDasharray="3 3" />
+                        <text x={padL - 4} y={y + 3} textAnchor="end" fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fill="var(--mut)">
                           {qVal}
                         </text>
                       </g>
                     );
                   })}
 
-                  {/* Inflow Hydrograph Area & Line */}
-                  <polygon
-                    points={`${padL},${padT + plotH} ${inflowPts.join(" ")} ${padL + plotW},${padT + plotH}`}
-                    fill="url(#inflow-area-grad)"
-                  />
-                  <polyline
-                    points={inflowPts.join(" ")}
-                    fill="none"
-                    stroke="#0284c7"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                  />
+                  {/* Inflow area & curve */}
+                  <polygon points={`${padL},${padT + plotH} ${inflowPts.join(" ")} ${padL + plotW},${padT + plotH}`} fill="url(#chart-inflow-grad)" />
+                  <polyline points={inflowPts.join(" ")} fill="none" stroke="#0284c7" strokeWidth={2} strokeLinecap="round" />
 
-                  {/* Outflow Hydrograph Area & Line */}
-                  <polygon
-                    points={`${padL},${padT + plotH} ${outflowPts.join(" ")} ${padL + plotW},${padT + plotH}`}
-                    fill="url(#outflow-area-grad)"
-                  />
-                  <polyline
-                    points={outflowPts.join(" ")}
-                    fill="none"
-                    stroke="#059669"
-                    strokeWidth={2.4}
-                    strokeLinecap="round"
-                  />
+                  {/* Outflow area & curve */}
+                  <polygon points={`${padL},${padT + plotH} ${outflowPts.join(" ")} ${padL + plotW},${padT + plotH}`} fill="url(#chart-outflow-grad)" />
+                  <polyline points={outflowPts.join(" ")} fill="none" stroke="#059669" strokeWidth={2.4} strokeLinecap="round" />
 
-                  {/* Stage curve h(t) */}
-                  <polyline
-                    points={stagePts.join(" ")}
-                    fill="none"
-                    stroke="#9333ea"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 2"
-                  />
+                  {/* Water Stage Curve h(t) */}
+                  <polyline points={stagePts.join(" ")} fill="none" stroke="#9333ea" strokeWidth={1.6} strokeDasharray="4 2" />
 
-                  {/* Spillway Level Line H_spill */}
-                  {(() => {
-                    const ySpill = padT + plotH - (dam.hSpill / maxH) * plotH;
-                    return (
-                      <line
-                        x1={padL}
-                        y1={ySpill}
-                        x2={padL + plotW}
-                        y2={ySpill}
-                        stroke="#0284c7"
-                        strokeWidth={0.9}
-                        strokeDasharray="2 2"
-                      />
-                    );
-                  })()}
+                  {/* Current Time Tracker */}
+                  <line x1={currentX} y1={padT} x2={currentX} y2={padT + plotH} stroke="var(--ink)" strokeWidth={1.5} />
+                  <circle cx={currentX} cy={padT + plotH - (currentInflow / maxQ) * plotH} r={3.5} fill="#0284c7" />
+                  <circle cx={currentX} cy={padT + plotH - (currentOutflow / maxQ) * plotH} r={4} fill="#059669" stroke="#ffffff" strokeWidth={1.2} />
 
-                  {/* Dam Crest Warning Line H_max */}
-                  {(() => {
-                    const yMax = padT + plotH - (dam.hMax / maxH) * plotH;
-                    return (
-                      <line
-                        x1={padL}
-                        y1={yMax}
-                        x2={padL + plotW}
-                        y2={yMax}
-                        stroke="#dc2626"
-                        strokeWidth={1}
-                        strokeDasharray="3 2"
-                      />
-                    );
-                  })()}
-
-                  {/* Time Scrubber Line Indicator */}
-                  <line
-                    x1={currentX}
-                    y1={padT}
-                    x2={currentX}
-                    y2={padT + plotH}
-                    stroke="var(--ink)"
-                    strokeWidth={1.5}
-                  />
-                  <circle
-                    cx={currentX}
-                    cy={padT + plotH - (currentInflow / maxQ) * plotH}
-                    r={3.5}
-                    fill="#0284c7"
-                  />
-                  <circle
-                    cx={currentX}
-                    cy={padT + plotH - (currentOutflow / maxQ) * plotH}
-                    r={4}
-                    fill="#059669"
-                    stroke="#ffffff"
-                    strokeWidth={1.2}
-                  />
-
-                  {/* Axes */}
-                  <line
-                    x1={padL}
-                    y1={padT + plotH}
-                    x2={padL + plotW}
-                    y2={padT + plotH}
-                    stroke="var(--ink)"
-                    strokeWidth={1}
-                  />
-                  <line
-                    x1={padL}
-                    y1={padT}
-                    x2={padL}
-                    y2={padT + plotH}
-                    stroke="var(--ink)"
-                    strokeWidth={1}
-                  />
+                  {/* Chart Axes */}
+                  <line x1={padL} y1={padT + plotH} x2={padL + plotW} y2={padT + plotH} stroke="var(--ink)" strokeWidth={1} />
+                  <line x1={padL} y1={padT} x2={padL} y2={padT + plotH} stroke="var(--ink)" strokeWidth={1} />
 
                   {/* Time Ticks */}
                   {[0, 0.25, 0.5, 0.75, 1.0].map((frac) => {
                     const x = padL + plotW * frac;
                     const tVal = Math.round(maxT * frac);
                     return (
-                      <g key={`tick-t-${frac}`}>
+                      <g key={`tick-h-${frac}`}>
                         <line x1={x} y1={padT + plotH} x2={x} y2={padT + plotH + 4} stroke="var(--ink)" strokeWidth={1} />
-                        <text
-                          x={x}
-                          y={padT + plotH + 13}
-                          textAnchor="middle"
-                          fontSize="8.5"
-                          fontFamily="var(--font-ibm-plex-mono), monospace"
-                          fill="var(--ink2)"
-                        >
+                        <text x={x} y={padT + plotH + 13} textAnchor="middle" fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fill="var(--ink2)">
                           {tVal}h
                         </text>
                       </g>
                     );
                   })}
 
-                  <text
-                    x={padL + plotW}
-                    y={padT + plotH + 22}
-                    textAnchor="end"
-                    fontSize="8.5"
-                    fontFamily="var(--font-ibm-plex-mono), monospace"
-                    fill="var(--mut)"
-                  >
+                  <text x={padL + plotW} y={padT + plotH + 21} textAnchor="end" fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fill="var(--mut)">
                     {lang === "tr" ? "Zaman (saat)" : "Time (hours)"}
                   </text>
-                  <text
-                    x={padL}
-                    y={padT - 6}
-                    textAnchor="start"
-                    fontSize="8.5"
-                    fontFamily="var(--font-ibm-plex-mono), monospace"
-                    fill="var(--mut)"
-                  >
+                  <text x={padL} y={padT - 5} textAnchor="start" fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fill="var(--mut)">
                     Q (m³/s)
                   </text>
-                  <text
-                    x={padL + plotW + 4}
-                    y={padT - 6}
-                    textAnchor="end"
-                    fontSize="8.5"
-                    fontFamily="var(--font-ibm-plex-mono), monospace"
-                    fill="#9333ea"
-                  >
+                  <text x={padL + plotW + 4} y={padT - 5} textAnchor="end" fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fill="#9333ea">
                     h (m)
                   </text>
                 </svg>
@@ -1424,137 +1129,97 @@ export function DamFloodRoutingPlayground() {
         </div>
       </div>
 
-      {/* ── Mathematical Derivation & Thesis Equations Accordion ──────── */}
-      <div className="p-4 sm:p-6 border-t border-[var(--line)] bg-[var(--paper)] flex flex-col gap-4">
+      {/* ── ACCORDION: M.SC. THESIS MATHEMATICAL FORMULATION ─────────── */}
+      <div className="p-4 sm:p-5 border-t border-[var(--line)] bg-[var(--paper)] flex flex-col gap-3">
         <button
           type="button"
           onClick={() => setShowMathGuide((v) => !v)}
           className="cursor-pointer flex items-center justify-between w-full text-left py-1 group"
         >
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[var(--frame)] text-[var(--paper)] flex items-center justify-center flex-none">
-              <Calculator size={16} />
+            <div className="w-7 h-7 rounded-lg bg-[var(--frame)] text-[var(--paper)] flex items-center justify-center flex-none">
+              <Calculator size={15} />
             </div>
             <div>
               <span className="font-plex-mono text-[9px] font-bold uppercase tracking-widest text-[var(--acc)]">
-                {lang === "tr" ? "M.SC. TEZİ MATEMATİKSEL MODELİ (SAYFA 32)" : "M.SC. THESIS MATHEMATICAL FORMULATION (PAGE 32)"}
+                {lang === "tr" ? "M.SC. TEZİ MATEMATİKSEL MODELİ (SAYFA 32)" : "M.SC. THESIS MATHEMATICAL MODEL (PAGE 32)"}
               </span>
-              <h4 className="font-display font-bold text-[15px] sm:text-[16px] text-[var(--ink)]">
+              <h4 className="font-display font-bold text-[14.5px] sm:text-[15.5px] text-[var(--ink)]">
                 {lang === "tr"
-                  ? "Parçalı Baraj Boşalım Denklemleri ve Seviye-Depolama Ötelemesi"
-                  : "Piecewise Dam Discharge Equations & Reservoir Flood Routing"}
+                  ? "Parçalı Baraj Boşalım Denklemleri & Kütle Korunumu"
+                  : "Piecewise Dam Discharge Equations & Mass Conservation"}
               </h4>
             </div>
           </div>
           <span className="p-1 rounded bg-[var(--atlas-card)] border border-[var(--line)] text-[var(--mut)] group-hover:text-[var(--ink)]">
-            {showMathGuide ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {showMathGuide ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </span>
         </button>
 
         {showMathGuide && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
-            {/* Equation Card */}
-            <div className="lg:col-span-7 bg-[var(--atlas-card)] p-4 sm:p-5 rounded-lg border border-[var(--line)] flex flex-col gap-3 font-mono text-[12px] leading-relaxed">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-2 font-mono text-[11.5px]">
+            {/* Left: 4 Regimes */}
+            <div className="lg:col-span-7 bg-[var(--atlas-card)] p-4 rounded-lg border border-[var(--line)] flex flex-col gap-2.5">
               <span className="font-plex-mono text-[10px] font-bold text-[var(--ink)] uppercase tracking-wider">
-                {lang === "tr" ? "TEZDEKİ ANALİTİK FORMÜLASYON q(t, h):" : "THESIS GOVERNING EQUATION q(t, h):"}
+                {lang === "tr" ? "PARÇALI DEBİ MODELİ q(t, h):" : "PIECEWISE RATING CURVE q(t, h):"}
               </span>
 
-              {/* Regime 1 */}
-              <div
-                className={`p-2.5 rounded border transition-colors ${
-                  currentFlowBreakdown.regime === 1
-                    ? "bg-sky-500/15 border-sky-500 text-[var(--ink)] font-bold shadow-xs"
-                    : "bg-[var(--paper)] border-[var(--line)] text-[var(--mut)]"
-                }`}
-              >
-                <div className="flex justify-between items-center text-[10.5px]">
-                  <span>Regime 1 (h &lt; d): Kısmi Dolu Orifis (Partial Orifice)</span>
+              <div className={`p-2 rounded border ${currentFlowBreakdown.regime === 1 ? "bg-sky-500/15 border-sky-500 font-bold" : "bg-[var(--paper)] border-[var(--line)] opacity-70"}`}>
+                <div className="flex justify-between text-[10px]">
+                  <span>Regime 1 (h &lt; d): Kısmi Dolu Dip Savak</span>
                   {currentFlowBreakdown.regime === 1 && <span className="text-sky-600">● AKTİF</span>}
                 </div>
-                <div className="mt-1 overflow-x-auto text-[11.5px]">
-                  q = c₁·r² · (arccos(f) - f·√(1 - f²) - π) · √(2gh)
-                </div>
+                <div className="text-[11px] mt-0.5">q = c₁·r² · (arccos(f) - f·√(1 - f²) - π) · √(2gh)</div>
               </div>
 
-              {/* Regime 2 */}
-              <div
-                className={`p-2.5 rounded border transition-colors ${
-                  currentFlowBreakdown.regime === 2
-                    ? "bg-sky-500/15 border-sky-500 text-[var(--ink)] font-bold shadow-xs"
-                    : "bg-[var(--paper)] border-[var(--line)] text-[var(--mut)]"
-                }`}
-              >
-                <div className="flex justify-between items-center text-[10.5px]">
-                  <span>Regime 2 (d ≤ h ≤ H_spill): Basınçlı Dip Savak (Submerged Orifice)</span>
+              <div className={`p-2 rounded border ${currentFlowBreakdown.regime === 2 ? "bg-sky-500/15 border-sky-500 font-bold" : "bg-[var(--paper)] border-[var(--line)] opacity-70"}`}>
+                <div className="flex justify-between text-[10px]">
+                  <span>Regime 2 (d ≤ h ≤ H_savak): Basınçlı Orifis Akışı</span>
                   {currentFlowBreakdown.regime === 2 && <span className="text-sky-600">● AKTİF</span>}
                 </div>
-                <div className="mt-1 overflow-x-auto text-[11.5px]">
-                  q = c₁ · O_a · √(2gh)
-                </div>
+                <div className="text-[11px] mt-0.5">q = c₁ · A_orifis · √(2gh)</div>
               </div>
 
-              {/* Regime 3 */}
-              <div
-                className={`p-2.5 rounded border transition-colors ${
-                  currentFlowBreakdown.regime === 3
-                    ? "bg-sky-500/15 border-sky-500 text-[var(--ink)] font-bold shadow-xs"
-                    : "bg-[var(--paper)] border-[var(--line)] text-[var(--mut)]"
-                }`}
-              >
-                <div className="flex justify-between items-center text-[10.5px]">
-                  <span>Regime 3 (H_spill &lt; h ≤ H_max): Dip Savak + Dolu Savak (Spillway Weir)</span>
+              <div className={`p-2 rounded border ${currentFlowBreakdown.regime === 3 ? "bg-sky-500/15 border-sky-500 font-bold" : "bg-[var(--paper)] border-[var(--line)] opacity-70"}`}>
+                <div className="flex justify-between text-[10px]">
+                  <span>Regime 3 (H_savak &lt; h ≤ H_kret): Dip Savak + Dolu Savak Savaklanması</span>
                   {currentFlowBreakdown.regime === 3 && <span className="text-sky-600">● AKTİF</span>}
                 </div>
-                <div className="mt-1 overflow-x-auto text-[11.5px]">
-                  q = c₁·O_a·√(2gh) + c₂·L_spill · ((h - H_spill) / H_r)^(3/2)
-                </div>
+                <div className="text-[11px] mt-0.5">q = c₁·A_orifis·√(2gh) + c₂·L_savak · ((h - H_savak) / H_r)^(3/2)</div>
               </div>
 
-              {/* Regime 4 */}
-              <div
-                className={`p-2.5 rounded border transition-colors ${
-                  currentFlowBreakdown.regime === 4
-                    ? "bg-rose-500/20 border-rose-500 text-rose-700 dark:text-rose-300 font-bold shadow-xs animate-pulse"
-                    : "bg-[var(--paper)] border-[var(--line)] text-[var(--mut)]"
-                }`}
-              >
-                <div className="flex justify-between items-center text-[10.5px]">
-                  <span>Regime 4 (h &gt; H_max): Dip Savak + Dolu Savak + Kret Aşımı (Overtopping!)</span>
+              <div className={`p-2 rounded border ${currentFlowBreakdown.regime === 4 ? "bg-rose-500/20 border-rose-500 font-bold text-rose-700 dark:text-rose-300" : "bg-[var(--paper)] border-[var(--line)] opacity-70"}`}>
+                <div className="flex justify-between text-[10px]">
+                  <span>Regime 4 (h &gt; H_kret): Baraj Kreti Aşımı (Overtopping!)</span>
                   {currentFlowBreakdown.regime === 4 && <span>⚠️ TEHLİKE</span>}
                 </div>
-                <div className="mt-1 overflow-x-auto text-[11.5px]">
-                  q = c₁·O_a·√(2gh) + c₂·L_spill·((h - H_spill) / H_r)^(3/2) + c₂·(L_crest - L_spill)·((h - H_max) / H_r)^(3/2)
-                </div>
+                <div className="text-[11px] mt-0.5">q = q_orifis + q_savak + c₂·(L_kret - L_savak)·((h - H_kret) / H_r)^(3/2)</div>
               </div>
             </div>
 
-            {/* Live Numerical Parameter Substitution */}
-            <div className="lg:col-span-5 bg-[var(--atlas-card)] p-4 sm:p-5 rounded-lg border border-[var(--line)] flex flex-col gap-3 font-mono text-[11px]">
-              <span className="font-plex-mono text-[10px] font-bold text-[var(--ink)] uppercase tracking-wider">
-                {lang === "tr" ? "ANLIK SAYISAL ÇÖZÜM (t = " : "CURRENT NUMERICAL EVALUATION (t = "}
-                {currentTimeHours.toFixed(1)} h):
-              </span>
-
-              <div className="space-y-1.5 text-[var(--ink)]">
-                <div>• Su Seviyesi h = <strong>{currentStage.toFixed(2)} m</strong></div>
-                <div>• Orifis Kesiti O_a = π·d²/4 = <strong>{((Math.PI / 4) * Math.pow(dam.orificeDiameter, 2)).toFixed(2)} m²</strong></div>
-                <div>• Savak Genişliği L_spill = <strong>{dam.lSpill} m</strong></div>
-                <div>• Gövde Yüksekliği H_max = <strong>{dam.hMax} m</strong> (Savak Kotu: {dam.hSpill} m)</div>
-                <div className="pt-2 border-t border-[var(--line)]">
-                  • q_orifis = <strong>{currentFlowBreakdown.qOrifice.toFixed(2)} m³/s</strong>
-                </div>
-                <div>• q_savak = <strong>{currentFlowBreakdown.qSpillway.toFixed(2)} m³/s</strong></div>
-                <div>• q_kret = <strong>{currentFlowBreakdown.qOvertopping.toFixed(2)} m³/s</strong></div>
-                <div className="pt-1.5 border-t border-[var(--line)] text-emerald-600 dark:text-emerald-400 font-bold text-[12.5px]">
-                  = Toplam Q_çıkış = {currentFlowBreakdown.qTotal.toFixed(2)} m³/s
+            {/* Right: Numerical Solution & Physics */}
+            <div className="lg:col-span-5 bg-[var(--atlas-card)] p-4 rounded-lg border border-[var(--line)] flex flex-col justify-between gap-3 text-[11px]">
+              <div>
+                <span className="font-plex-mono text-[10px] font-bold text-[var(--ink)] uppercase tracking-wider">
+                  {lang === "tr" ? "KÜTLE KORUNUMU & HİDROLOJİK PRENSİP" : "MASS CONSERVATION PRINCIPLE"}
+                </span>
+                <div className="mt-2 text-[var(--ink)] space-y-1">
+                  <div className="p-2 rounded bg-[var(--paper)] border border-[var(--line)] font-bold text-[12px] text-center">
+                    dS / dt = I(t) - Q(t, h)
+                  </div>
+                  <p className="text-[10.5px] text-[var(--ink2)] leading-relaxed mt-2">
+                    {lang === "tr"
+                      ? "Gelen taşkın debisi I(t), rezervuarda depolanarak çıkış debisini Q(t) geciktirir. Simülatör 4. mertebe Runge-Kutta (RK4) sayısal integrasyonu ile seviye-depolama ilişkisini anlık çözer."
+                      : "Incoming hydrograph volume is retained within the reservoir storage buffer S(h), flattening and delaying the outflow hydrograph peak Q(t)."}
+                  </p>
                 </div>
               </div>
 
-              <div className="mt-auto p-2.5 rounded bg-[var(--paper)] border border-[var(--line)] text-[10px] text-[var(--mut)]">
-                💡 <strong>{lang === "tr" ? "Kütle Korunumu:" : "Mass Balance:"}</strong> dS/dt = I(t) - Q(t, h). 
+              <div className="p-2.5 rounded bg-[var(--paper)] border border-[var(--line)] text-[10px] text-[var(--mut)]">
+                💡 <strong>{lang === "tr" ? "Mühendislik Notu:" : "Engineering Takeaway:"}</strong>{" "}
                 {lang === "tr"
-                  ? " Gelen taşkın suyu rezervuarda depolanarak çıkış piki geciktirilir ve debi önemli ölçüde traşlanır."
-                  : " Storing floodwaters in the reservoir shaves down peak discharge and delays the flood arrival."}
+                  ? "Baraj tasarımında amaç; mansaptaki can ve mal kaybını önleyecek maksimum pik kırpmayı sağlarken, gövde hava payını pozitif tutarak kret aşımını engellemektir."
+                  : "The hydraulic goal is to maximize peak attenuation for downstream safety while guaranteeing positive freeboard so the dam never overtops."}
               </div>
             </div>
           </div>

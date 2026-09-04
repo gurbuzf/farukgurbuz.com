@@ -307,8 +307,25 @@ export function HeroMap() {
             {t(copy.home.heroDesc, lang)}
           </p>
 
-          {/* Featured Hydrology Lab Instrument Card (Desktop Edition) */}
-          <div className="mt-3 flex flex-col gap-2.5">
+          {/* Primary Exploration Actions (CV & Publications) */}
+          <div className="mt-3 flex items-center gap-3">
+            <Link
+              href="/cv"
+              className="group cursor-pointer inline-flex items-center gap-2 px-4.5 py-2 bg-[var(--frame)] text-[var(--paper)] font-display font-semibold text-[12.5px] tracking-wide hover:bg-[var(--acc)] shadow-xs transition-all duration-200 rounded-xs"
+            >
+              <span>{t(copy.home.viewCv, lang)}</span>
+              <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <Link
+              href="/publications"
+              className="cursor-pointer px-4.5 py-2 border-[1.5px] border-[var(--frame)] text-[var(--ink)] font-display font-medium text-[12.5px] tracking-wide hover:border-[var(--acc)] hover:text-[var(--acc)] bg-[var(--atlas-card)] shadow-xs transition-all duration-200 rounded-xs"
+            >
+              {t(copy.home.viewPubs, lang)}
+            </Link>
+          </div>
+
+          {/* Featured Hydrology Lab Instrument Card (Desktop Edition) — Positioned below buttons with dedicated breathing room */}
+          <div className="mt-4 sm:mt-4.5 flex flex-col">
             <Link
               href="/lab"
               className="group relative overflow-hidden rounded-xl border border-sky-500/40 bg-gradient-to-br from-[#0c1628] via-[#0f203c] to-[#0a1424] text-white p-3.5 sm:p-4 shadow-[0_8px_24px_-6px_rgba(2,132,199,0.35)] hover:shadow-[0_12px_28px_-4px_rgba(2,132,199,0.45)] hover:border-sky-400/60 transition-all duration-300 active:scale-[0.99]"
@@ -364,27 +381,10 @@ export function HeroMap() {
                 </div>
               </div>
             </Link>
-
-            {/* Secondary Actions: CV & Publications */}
-            <div className="flex items-center gap-2.5">
-              <Link
-                href="/cv"
-                className="group cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-[var(--frame)] text-[var(--paper)] font-display font-semibold text-[12.5px] tracking-wide hover:bg-[var(--acc)] shadow-xs transition-all duration-200 rounded-xs"
-              >
-                <span>{t(copy.home.viewCv, lang)}</span>
-                <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="/publications"
-                className="cursor-pointer px-4 py-2 border-[1.5px] border-[var(--frame)] text-[var(--ink)] font-display font-medium text-[12.5px] tracking-wide hover:border-[var(--acc)] hover:text-[var(--acc)] bg-[var(--atlas-card)] shadow-xs transition-all duration-200 rounded-xs"
-              >
-                {t(copy.home.viewPubs, lang)}
-              </Link>
-            </div>
           </div>
 
           {/* Prominent High-Visibility Profile Logos */}
-          <div className="mt-2.5 pt-2 border-t border-[var(--line)]">
+          <div className="mt-3 pt-2.5 border-t border-[var(--line)]">
             <SocialLinks variant="hero" includeEmail={false} />
           </div>
         </div>
