@@ -4,10 +4,10 @@ import { HeroMap } from "@/components/home/hero-map";
 // Home page.tsx shares the root route segment with layout.tsx, so layout's
 // title.template does not apply here (Next.js only applies templates to
 // child segments) — write the templated form explicitly for this one page.
-const TITLE = "Home | Faruk Gürbüz";
-const OG_TITLE = "Home";
+const TITLE = "Faruk Gürbüz — Water Resources Engineer & Geospatial Data Scientist";
+const OG_TITLE = "Faruk Gürbüz — Water Resources Engineer & Geospatial Data Scientist";
 const DESCRIPTION =
-  "Every map needs a legend. Faruk Gürbüz is a Water Resources Engineer, Geospatial Data Scientist, and GIS Enthusiast.";
+  "Faruk Gürbüz is a Water Resources Engineer and Geospatial Data Scientist. Explore interactive hydrology simulations, GIS-based watershed analysis, dam flood routing tools, and peer-reviewed research.";
 
 export const metadata: Metadata = {
   title: TITLE,
