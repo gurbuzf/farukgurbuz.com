@@ -29,7 +29,7 @@ export const timeline: TimelineEntry[] = [
       },
       {
         en: "Scalable geospatial workflows on high-volume datasets with open-source tooling",
-        tr: "Açık kaynaklı araçlarla yüksek hacimli veri setleri üzerinde ölçeklenebilir jeo-uzamsal iş akışları kurdu",
+        tr: "Açık kaynaklı araçlarla yüksek hacimli veri setleri üzerinde ölçeklenebilir mekansal iş akışları kurdu",
       },
       {
         en: "Environmental GIS vector datasets; print-quality scientific maps and visualizations",
@@ -119,7 +119,7 @@ export const timeline: TimelineEntry[] = [
       },
       {
         en: "Large-scale geospatial processing and model evaluation on HPC clusters",
-        tr: "Yüksek performanslı hesaplama (HPC) kümelerinde büyük ölçekli jeo-uzamsal işleme ve model değerlendirmesi yaptı",
+        tr: "Yüksek performanslı hesaplama (HPC) kümelerinde büyük ölçekli mekansal veri işleme ve model değerlendirmesi yaptı",
       },
       {
         en: "Reproducible statistical workflows for hydrological and climatic variables",
