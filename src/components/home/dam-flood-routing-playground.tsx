@@ -112,10 +112,10 @@ export function DamFloodRoutingPlayground() {
     setDam((prev) => {
       const next = { ...prev, [key]: value };
       if (key === "hMax" && next.hSpill >= value) {
-        next.hSpill = Math.max(1, value - 1.5);
+        next.hSpill = Math.max(0.5, Number((value - 0.5).toFixed(1)));
       }
       if (key === "hSpill" && next.hMax <= value) {
-        next.hMax = value + 1.5;
+        next.hMax = Number((value + 0.5).toFixed(1));
       }
       if (key === "lCrest" && next.lSpill > value) {
         next.lSpill = value;
@@ -124,6 +124,9 @@ export function DamFloodRoutingPlayground() {
         next.lCrest = value;
       }
       if (key === "hMax" && next.h0 > value) {
+        next.h0 = value;
+      }
+      if (key === "hSpill" && next.h0 > value) {
         next.h0 = value;
       }
       return next;
@@ -356,7 +359,8 @@ export function DamFloodRoutingPlayground() {
               {/* ════════════════════════════════════════════════════════════ */}
               {viewMode === "profile" && (() => {
                 const yBase = 245;
-                const scale = 7.0; // pixels per meter
+                const maxDamH = Math.max(2, dam.hMax);
+                const scale = Math.min(20.0, Math.max(5.0, 155 / maxDamH));
                 const xUp = 200;
                 const crestW = 40;
                 const xCrestEnd = xUp + crestW; // 240
@@ -370,8 +374,8 @@ export function DamFloodRoutingPlayground() {
                 const yWater = Math.max(20, yBase - hWaterPx);
 
                 const xToe = xCrestEnd + hSpillPx * 0.95;
-                const orifY = yBase - 18;
-                const orifDpx = Math.max(8, Math.min(24, dam.orificeDiameter * 5.5));
+                const orifY = yBase - Math.min(18, Math.max(8, hMaxPx * 0.18));
+                const orifDpx = Math.max(4, Math.min(22, dam.orificeDiameter * scale * 0.7));
                 const orifExitX = xToe - 16;
 
                 return (
@@ -443,65 +447,69 @@ export function DamFloodRoutingPlayground() {
                       <line x1={xUp} y1={ySpill} x2={xCrestEnd} y2={ySpill} stroke="#0284c7" strokeWidth={1.5} strokeDasharray="4 3" />
                     )}
 
-                    {/* Bottom Orifice Conduit & Pipe */}
-                    <rect
-                      x={xUp - 4}
-                      y={orifY - orifDpx / 2}
-                      width={orifExitX - xUp + 4}
-                      height={orifDpx}
-                      fill={currentFlowBreakdown.qOrifice > 0 ? "#0284c7" : (dark ? "#09090b" : "#334155")}
-                      stroke="#38bdf8"
-                      strokeWidth={1.5}
-                    />
-                    {/* Orifice Diameter Label (Clean, no box) */}
-                    <text
-                      x={(xUp + orifExitX) / 2}
-                      y={orifY - orifDpx / 2 - 5}
-                      textAnchor="middle"
-                      fontSize="10"
-                      fontFamily="var(--font-ibm-plex-mono), monospace"
-                      fontWeight="bold"
-                      fill="#0284c7"
-                      stroke="var(--paper)"
-                      strokeWidth={2}
-                      paintOrder="stroke fill"
-                    >
-                      Ø d = {dam.orificeDiameter}m
-                    </text>
+                    {/* Bottom Orifice Conduit & Pipe (Only if orifice exists d > 0) */}
+                    {dam.orificeDiameter > 0 && (
+                      <g className="profile-orifice">
+                        <rect
+                          x={xUp - 4}
+                          y={orifY - orifDpx / 2}
+                          width={orifExitX - xUp + 4}
+                          height={orifDpx}
+                          fill={currentFlowBreakdown.qOrifice > 0 ? "#0284c7" : (dark ? "#09090b" : "#334155")}
+                          stroke="#38bdf8"
+                          strokeWidth={1.5}
+                        />
+                        {/* Orifice Diameter Label (Clean, no box) */}
+                        <text
+                          x={(xUp + orifExitX) / 2}
+                          y={orifY - orifDpx / 2 - 5}
+                          textAnchor="middle"
+                          fontSize="10"
+                          fontFamily="var(--font-ibm-plex-mono), monospace"
+                          fontWeight="bold"
+                          fill="#0284c7"
+                          stroke="var(--paper)"
+                          strokeWidth={2}
+                          paintOrder="stroke fill"
+                        >
+                          Ø d = {dam.orificeDiameter}m
+                        </text>
 
-                    {/* Pressurized Water Jet */}
-                    {currentFlowBreakdown.qOrifice > 0.05 && (() => {
-                      const jetReach = Math.min(140, Math.max(45, Math.sqrt(currentStage) * 32));
-                      const jetEndX = orifExitX + jetReach;
+                        {/* Pressurized Water Jet */}
+                        {currentFlowBreakdown.qOrifice > 0.05 && (() => {
+                          const jetReach = Math.min(140, Math.max(35, Math.sqrt(currentStage) * 28));
+                          const jetEndX = orifExitX + jetReach;
 
-                      return (
-                        <g className="jet">
-                          <path
-                            d={`
-                              M ${orifExitX} ${orifY - orifDpx / 2}
-                              Q ${orifExitX + jetReach * 0.45} ${orifY - 4} ${jetEndX} ${yBase}
-                              L ${jetEndX - 10} ${yBase}
-                              Q ${orifExitX + jetReach * 0.35} ${orifY + 4} ${orifExitX} ${orifY + orifDpx / 2}
-                              Z
-                            `}
-                            fill="url(#dam-clean-cascade)"
-                          />
-                          <text
-                            x={jetEndX + 8}
-                            y={yBase - 6}
-                            fontSize="10"
-                            fontFamily="var(--font-ibm-plex-mono), monospace"
-                            fontWeight="bold"
-                            fill="#0284c7"
-                            stroke="var(--paper)"
-                            strokeWidth={2}
-                            paintOrder="stroke fill"
-                          >
-                            q_dip = {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s
-                          </text>
-                        </g>
-                      );
-                    })()}
+                          return (
+                            <g className="jet">
+                              <path
+                                d={`
+                                  M ${orifExitX} ${orifY - orifDpx / 2}
+                                  Q ${orifExitX + jetReach * 0.45} ${orifY - 4} ${jetEndX} ${yBase}
+                                  L ${jetEndX - 10} ${yBase}
+                                  Q ${orifExitX + jetReach * 0.35} ${orifY + 4} ${orifExitX} ${orifY + orifDpx / 2}
+                                  Z
+                                `}
+                                fill="url(#dam-clean-cascade)"
+                              />
+                              <text
+                                x={jetEndX + 8}
+                                y={yBase - 6}
+                                fontSize="10"
+                                fontFamily="var(--font-ibm-plex-mono), monospace"
+                                fontWeight="bold"
+                                fill="#0284c7"
+                                stroke="var(--paper)"
+                                strokeWidth={2}
+                                paintOrder="stroke fill"
+                              >
+                                q_dip = {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s
+                              </text>
+                            </g>
+                          );
+                        })()}
+                      </g>
+                    )}
 
                     {/* Spillway Cascade Flow (Only if spillway weir exists and active) */}
                     {dam.lSpill > 0 && isCurrentlySpilling ? (() => {
@@ -670,7 +678,8 @@ export function DamFloodRoutingPlayground() {
               {/* ════════════════════════════════════════════════════════════ */}
               {viewMode === "elevation" && (() => {
                 const yBase = 245;
-                const scale = 7.0;
+                const maxDamH = Math.max(2, dam.hMax);
+                const scale = Math.min(20.0, Math.max(5.0, 155 / maxDamH));
                 const hMaxPx = dam.hMax * scale;
                 const hSpillPx = dam.hSpill * scale;
 
@@ -681,13 +690,13 @@ export function DamFloodRoutingPlayground() {
                 const crestRightX = 490;
                 const totalWidthPx = crestRightX - crestLeftX;
 
-                const spillFrac = Math.min(0.75, Math.max(0.15, dam.lSpill / dam.lCrest));
+                const spillFrac = Math.min(0.75, Math.max(0.15, dam.lSpill / Math.max(1, dam.lCrest)));
                 const spillWidthPx = totalWidthPx * spillFrac;
                 const s1X = 310 - spillWidthPx / 2;
                 const s2X = 310 + spillWidthPx / 2;
 
-                const orifY = yBase - 18;
-                const orifRpx = Math.max(5, Math.min(15, dam.orificeDiameter * 3.5));
+                const orifY = yBase - Math.min(18, Math.max(8, hMaxPx * 0.18));
+                const orifRpx = Math.max(3.5, Math.min(14, (dam.orificeDiameter * scale * 0.7) / 2));
 
                 return (
                   <g className="elevation-diagram">
@@ -729,22 +738,26 @@ export function DamFloodRoutingPlayground() {
                       />
                     )}
 
-                    {/* Bottom Outlet Circle */}
-                    <circle cx="310" cy={orifY} r={orifRpx} fill="#020617" stroke="#38bdf8" strokeWidth={2} />
-                    <text
-                      x="310"
-                      y={orifY - orifRpx - 4}
-                      textAnchor="middle"
-                      fontSize="9.5"
-                      fontFamily="var(--font-ibm-plex-mono), monospace"
-                      fontWeight="bold"
-                      fill="#38bdf8"
-                      stroke="var(--paper)"
-                      strokeWidth={2}
-                      paintOrder="stroke fill"
-                    >
-                      Ø d = {dam.orificeDiameter}m
-                    </text>
+                    {/* Bottom Outlet Circle (Only if orifice exists d > 0) */}
+                    {dam.orificeDiameter > 0 && (
+                      <g className="elevation-orifice">
+                        <circle cx="310" cy={orifY} r={orifRpx} fill="#020617" stroke="#38bdf8" strokeWidth={2} />
+                        <text
+                          x="310"
+                          y={orifY - orifRpx - 4}
+                          textAnchor="middle"
+                          fontSize="9.5"
+                          fontFamily="var(--font-ibm-plex-mono), monospace"
+                          fontWeight="bold"
+                          fill="#38bdf8"
+                          stroke="var(--paper)"
+                          strokeWidth={2}
+                          paintOrder="stroke fill"
+                        >
+                          Ø d = {dam.orificeDiameter}m
+                        </text>
+                      </g>
+                    )}
 
                     {/* Overflow Flow Down Spillway Chute (Only if spillway weir exists and active) */}
                     {dam.lSpill > 0 && isCurrentlySpilling && (
@@ -1129,7 +1142,7 @@ export function DamFloodRoutingPlayground() {
         {/* TAB 1: DAM & SPILLWAY GEOMETRY (Compact 5-column grid) */}
         {controlsTab === "geometry" && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {/* Dam Crest H_max */}
+            {/* Dam Crest H_max (allows low weirs from 2m up to 35m dams) */}
             <div className="p-2.5 bg-[var(--atlas-card)] border border-[var(--line)] rounded-md flex flex-col gap-1 shadow-2xs">
               <div className="flex justify-between items-baseline font-plex-mono text-[10.5px]">
                 <span className="text-[var(--ink)] font-semibold">{lang === "tr" ? "Kret Kotu (H):" : "Crest (H):"}</span>
@@ -1137,8 +1150,8 @@ export function DamFloodRoutingPlayground() {
               </div>
               <input
                 type="range"
-                min={10}
-                max={30}
+                min={2}
+                max={35}
                 step={0.5}
                 value={dam.hMax}
                 onChange={(e) => updateDamParam("hMax", Number(e.target.value))}
@@ -1146,7 +1159,7 @@ export function DamFloodRoutingPlayground() {
               />
             </div>
 
-            {/* Spillway Crest H_spill */}
+            {/* Spillway Crest H_spill (allows low elevations from 0.5m) */}
             <div className="p-2.5 bg-[var(--atlas-card)] border border-[var(--line)] rounded-md flex flex-col gap-1 shadow-2xs">
               <div className="flex justify-between items-baseline font-plex-mono text-[10.5px]">
                 <span className="text-[var(--ink)] font-semibold">{lang === "tr" ? "Savak Kotu:" : "Spillway:"}</span>
@@ -1154,9 +1167,9 @@ export function DamFloodRoutingPlayground() {
               </div>
               <input
                 type="range"
-                min={6}
-                max={dam.hMax - 0.5}
-                step={0.5}
+                min={0.5}
+                max={Math.max(0.5, Number((dam.hMax - 0.2).toFixed(1)))}
+                step={0.2}
                 value={dam.hSpill}
                 onChange={(e) => updateDamParam("hSpill", Number(e.target.value))}
                 className="w-full accent-[#0284c7] cursor-pointer h-1.5"
@@ -1182,15 +1195,17 @@ export function DamFloodRoutingPlayground() {
               />
             </div>
 
-            {/* Orifice Diameter d */}
+            {/* Orifice Diameter d (can be 0 for dams without low-level outlet) */}
             <div className="p-2.5 bg-[var(--atlas-card)] border border-[var(--line)] rounded-md flex flex-col gap-1 shadow-2xs">
               <div className="flex justify-between items-baseline font-plex-mono text-[10.5px]">
                 <span className="text-[var(--ink)] font-semibold">{lang === "tr" ? "Dip Savak (Ø):" : "Outlet (Ø):"}</span>
-                <span className="font-bold text-sky-600">{dam.orificeDiameter} m</span>
+                <span className="font-bold text-sky-600">
+                  {dam.orificeDiameter === 0 ? (lang === "tr" ? "0 m (Kapalı)" : "0 m (Closed)") : `${dam.orificeDiameter} m`}
+                </span>
               </div>
               <input
                 type="range"
-                min={0.4}
+                min={0}
                 max={2.8}
                 step={0.1}
                 value={dam.orificeDiameter}
@@ -1299,7 +1314,7 @@ export function DamFloodRoutingPlayground() {
                 type="range"
                 min={0}
                 max={dam.hSpill}
-                step={0.5}
+                step={0.2}
                 value={dam.h0}
                 onChange={(e) => updateDamParam("h0", Number(e.target.value))}
                 className="w-full accent-purple-600 cursor-pointer h-1.5"

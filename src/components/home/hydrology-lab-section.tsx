@@ -136,9 +136,6 @@ export function HydrologyLabSection() {
               <span className="font-plex-mono text-[11px] font-bold tracking-widest text-emerald-600 dark:text-emerald-400 uppercase">
                 {t(copy.damLab.eyebrow, lang)}
               </span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500 text-white font-mono uppercase">
-                Figure 2.2 Formulations
-              </span>
             </div>
             <h3 className="font-display font-bold text-[28px] sm:text-[34px] tracking-[-0.02em] text-[var(--ink)]">
               {t(copy.damLab.title, lang)}

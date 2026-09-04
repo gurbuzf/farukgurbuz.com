@@ -1,7 +1,7 @@
 /**
  * Dam Hydraulics & Level-Pool Reservoir Flood Routing Engine
- * Based on Faruk Gurbuz's M.Sc. thesis ("Exploration of flood forecasting and flood mitigation",
- * The University of Iowa, Chapter 2 & Figure 2.2 / page 32).
+ * Simulates reservoir continuity mass balance dS/dt = I(t) - Q(t, h)
+ * with piecewise stage-discharge hydraulics across orifices, weirs, and crests.
  */
 
 export type HydrographShape = "gamma" | "triangular" | "trapezoid";
@@ -219,15 +219,14 @@ export const DAM_PRESETS = [
 ];
 
 /**
- * Calculates piecewise discharge q(t, h) according to Faruk Gurbuz's thesis formulation:
- * - Regime 1 (h < d): Partially filled bottom circular orifice
- * - Regime 2 (d <= h <= H_spill): Pressurized submerged orifice
- * - Regime 3 (H_spill < h <= H_max): Submerged orifice + spillway weir
- * - Regime 4 (h > H_max): Submerged orifice + spillway + dam crest overtopping
+ * Calculates piecewise discharge q(t, h) across hydraulic components:
+ * - Bottom circular orifice (partial or pressurized flow) if d > 0
+ * - Spillway ogee weir if L_spill > 0 and h > H_spill
+ * - Emergency dam crest overtopping if h > H_max
  */
 export function calculateOutflowDischarge(h: number, params: DamParameters): FlowRegimes {
   const g = 9.81;
-  const d = Math.max(0.05, params.orificeDiameter);
+  const d = Math.max(0, params.orificeDiameter);
   const r = d / 2;
   const oa = (Math.PI / 4) * d * d;
   const c1 = params.c1;
@@ -235,7 +234,7 @@ export function calculateOutflowDischarge(h: number, params: DamParameters): Flo
   const hr = Math.max(0.01, params.hr);
   const hSpill = params.hSpill;
   const hMax = Math.max(hSpill + 0.1, params.hMax);
-  const lSpill = params.lSpill;
+  const lSpill = Math.max(0, params.lSpill);
   const lCrest = Math.max(lSpill, params.lCrest);
 
   if (h <= 0.0001) {
@@ -251,44 +250,61 @@ export function calculateOutflowDischarge(h: number, params: DamParameters): Flo
 
   // 1. Bottom Orifice component
   let qOrifice = 0;
-  if (h < d) {
-    // Partially filled orifice: f = (h - r) / r
-    const f = Math.max(-0.9999, Math.min(0.9999, (h - r) / r));
-    // Wet segment angle factor: theta = arccos(f), segment area = r^2 * (arccos(f) - f * sqrt(1 - f^2))
-    // Standard hydraulic formula for circular segment:
-    const segArea = r * r * (Math.acos(-f) - (-f) * Math.sqrt(1 - f * f));
-    qOrifice = c1 * segArea * Math.sqrt(2 * g * h);
-  } else {
-    qOrifice = c1 * oa * Math.sqrt(2 * g * h);
+  if (d > 0) {
+    if (h < d) {
+      // Partially filled orifice: f = (h - r) / r
+      const f = Math.max(-0.9999, Math.min(0.9999, (h - r) / r));
+      const segArea = r * r * (Math.acos(-f) - (-f) * Math.sqrt(1 - f * f));
+      qOrifice = c1 * segArea * Math.sqrt(2 * g * h);
+    } else {
+      qOrifice = c1 * oa * Math.sqrt(2 * g * h);
+    }
   }
 
+  // 2. Spillway weir component
   let qSpillway = 0;
   if (h > hSpill && lSpill > 0) {
     const headOverSpill = (h - hSpill) / hr;
     qSpillway = c2 * lSpill * Math.pow(headOverSpill, 1.5);
   }
 
+  // 3. Dam Crest overtopping component
   let qOvertopping = 0;
   if (h > hMax) {
     const headOverCrest = (h - hMax) / hr;
-    const overtopLength = Math.max(0, lCrest - Math.max(0, lSpill));
+    const overtopLength = Math.max(0, lCrest - lSpill);
     qOvertopping = c2 * overtopLength * Math.pow(headOverCrest, 1.5);
   }
 
   let regime: 1 | 2 | 3 | 4 = 1;
   let regimeName = { en: "Regime 1: Partial Orifice Flow", tr: "Aşama 1: Kısmi Dolu Dip Savak" };
 
-  if (h >= d && h <= hSpill) {
-    regime = 2;
-    regimeName = { en: "Regime 2: Pressurized Orifice Flow", tr: "Aşama 2: Basınçlı Dip Savak Akışı" };
-  } else if (h > hSpill && h <= hMax) {
-    regime = 3;
-    regimeName = lSpill > 0
-      ? { en: "Regime 3: Orifice + Spillway Discharge", tr: "Aşama 3: Dip Savak + Dolu Savak Akışı" }
-      : { en: "Regime 2: Pressurized Orifice Flow (No Spillway)", tr: "Aşama 2: Basınçlı Dip Savak (Savaksız Gövde)" };
-  } else if (h > hMax) {
-    regime = 4;
-    regimeName = { en: "Regime 4: Dam Crest Overtopping (Emergency!)", tr: "Aşama 4: Baraj Kreti Aşımı (Acil Durum!)" };
+  if (d <= 0) {
+    if (h <= hSpill) {
+      regime = 1;
+      regimeName = { en: "Storage Only (No Low-Level Outlet)", tr: "Hazne Depolaması (Dip Savaksız)" };
+    } else if (h <= hMax) {
+      regime = 3;
+      regimeName = lSpill > 0
+        ? { en: "Regime 3: Spillway Discharge (No Outlet)", tr: "Aşama 3: Dolu Savak Akışı (Dip Savaksız)" }
+        : { en: "Storage Only (No Spillway)", tr: "Hazne Depolaması (Savaksız Gövde)" };
+    } else {
+      regime = 4;
+      regimeName = { en: "Regime 4: Dam Crest Overtopping (Emergency!)", tr: "Aşama 4: Baraj Kreti Aşımı (Acil Durum!)" };
+    }
+  } else {
+    if (h >= d && h <= hSpill) {
+      regime = 2;
+      regimeName = { en: "Regime 2: Pressurized Orifice Flow", tr: "Aşama 2: Basınçlı Dip Savak Akışı" };
+    } else if (h > hSpill && h <= hMax) {
+      regime = 3;
+      regimeName = lSpill > 0
+        ? { en: "Regime 3: Orifice + Spillway Discharge", tr: "Aşama 3: Dip Savak + Dolu Savak Akışı" }
+        : { en: "Regime 2: Pressurized Orifice Flow (No Spillway)", tr: "Aşama 2: Basınçlı Dip Savak (Savaksız Gövde)" };
+    } else if (h > hMax) {
+      regime = 4;
+      regimeName = { en: "Regime 4: Dam Crest Overtopping (Emergency!)", tr: "Aşama 4: Baraj Kreti Aşımı (Acil Durum!)" };
+    }
   }
 
   const qTotal = qOrifice + qSpillway + qOvertopping;
