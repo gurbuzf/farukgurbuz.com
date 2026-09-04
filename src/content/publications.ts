@@ -7,6 +7,7 @@ export type Publication = {
   year: string;
   venue: string;
   doi?: string;
+  url?: string;
 };
 
 export type PublicationGroup = {
@@ -102,8 +103,35 @@ export const publicationGroups: PublicationGroup[] = [
     ],
   },
   {
+    heading: { en: "BOOK CHAPTER", tr: "KİTAP BÖLÜMÜ" },
+    entries: [
+      {
+        idLabel: "B.1",
+        filled: true,
+        title:
+          "Türkiye’de Sürdürülebilir Su Kaynakları Yönetimi Uygulamalarında Çoruh Havzası’nın Yeri",
+        authors: ["Gürbüz", "Sarıkaya", "Akca"],
+        highlightAuthor: "Gürbüz",
+        year: "2025",
+        venue: "Artvin’de Su, Barajlar ve Enerji (Akçağ Yayınları), Cilt 1, ss. 363–380",
+        url: "https://scholar.google.com/citations?view_op=view_citation&hl=tr&user=CVfKPpUAAAAJ&citation_for_view=CVfKPpUAAAAJ:YsMSGLbcyi4C",
+      },
+    ],
+  },
+  {
     heading: { en: "CONFERENCE & THESIS", tr: "KONFERANS & TEZ" },
     entries: [
+      {
+        idLabel: "C.3",
+        filled: false,
+        title:
+          "Transformer-Based Reinforcement Learning for Flood-Resilient Reservoir Operation",
+        authors: ["Tofighi", "Gurbuz", "Mantilla", "Xiao"],
+        highlightAuthor: "Gurbuz",
+        year: "2024",
+        venue: "AGU Fall Meeting (H13Q-1324)",
+        url: "https://scholar.google.com/citations?view_op=view_citation&hl=tr&user=CVfKPpUAAAAJ&citation_for_view=CVfKPpUAAAAJ:Y0pCki6q_DkC",
+      },
       {
         idLabel: "C.2",
         filled: false,
@@ -123,6 +151,7 @@ export const publicationGroups: PublicationGroup[] = [
         highlightAuthor: "Gurbuz",
         year: "2021",
         venue: "AGU Fall Meeting",
+        url: "https://scholar.google.com/citations?view_op=view_citation&hl=tr&user=CVfKPpUAAAAJ&citation_for_view=CVfKPpUAAAAJ:2osOgNQ5qMEC",
       },
       {
         idLabel: "T",

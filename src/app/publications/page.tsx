@@ -45,24 +45,31 @@ export default function PublicationsPage() {
                       href={
                         entry.doi
                           ? `https://doi.org/${entry.doi}`
-                          : "https://scholar.google.com/citations?user=CVfKPpUAAAAJ&hl=tr"
+                          : entry.url || "https://scholar.google.com/citations?user=CVfKPpUAAAAJ&hl=tr"
                       }
                       target="_blank"
                       rel="noopener"
-                      className="text-[var(--ink)] no-underline"
+                      className="text-[var(--ink)] no-underline hover:text-[var(--acc)] transition-colors"
                     >
                       {entry.title}
                     </a>
                   </div>
                   <div className="mt-1.5 font-plex-mono text-[12.5px] text-[var(--mut)]">
-                    {entry.authors.map((author, ai) => (
-                      <span key={ai}>
-                        {ai > 0 && ", "}
-                        <span style={author === entry.highlightAuthor ? { color: "var(--acc)" } : undefined}>
-                          {author}
+                    {entry.authors.map((author, ai) => {
+                      const isHighlighted =
+                        author === entry.highlightAuthor ||
+                        author.replace("ü", "u") === entry.highlightAuthor.replace("ü", "u") ||
+                        author === "Gurbuz" ||
+                        author === "Gürbüz";
+                      return (
+                        <span key={ai}>
+                          {ai > 0 && ", "}
+                          <span style={isHighlighted ? { color: "var(--acc)", fontWeight: 600 } : undefined}>
+                            {author}
+                          </span>
                         </span>
-                      </span>
-                    ))}{" "}
+                      );
+                    })}{" "}
                     · {entry.year} · {entry.venue}
                   </div>
                 </div>
