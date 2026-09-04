@@ -10,11 +10,11 @@ import {
 
 export function FeaturePhoto({ lang }: { lang: Lang }) {
   return (
-    <div className="group relative flex flex-col items-center sm:items-start gap-4 p-5 bg-[var(--atlas-card)]/90 backdrop-blur-md border-[1.5px] border-[var(--frame)] shadow-[8px_8px_0_var(--shadow)] hover:shadow-[12px_12px_0_var(--shadow)] transition-all duration-300 max-w-[300px]">
+    <div className="group relative flex flex-col items-center sm:items-start gap-3 p-3.5 sm:p-4 bg-[var(--atlas-card)]/90 backdrop-blur-md border-[1.5px] border-[var(--frame)] shadow-[6px_6px_0_var(--shadow)] hover:shadow-[10px_10px_0_var(--shadow)] transition-all duration-300 max-w-[280px]">
       {/* Subtle top corner tech accent */}
       <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[var(--acc)] rounded-xs pointer-events-none" />
 
-      <div className="relative w-[210px] h-[250px] sm:w-[250px] sm:h-[290px] overflow-hidden border border-[var(--frame)] bg-[var(--paper)]">
+      <div className="relative w-[210px] h-[240px] sm:w-[230px] sm:h-[260px] overflow-hidden border border-[var(--frame)] bg-[var(--paper)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/faruk.jpg"
@@ -29,9 +29,9 @@ export function FeaturePhoto({ lang }: { lang: Lang }) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5 w-full">
+      <div className="flex flex-col gap-1 w-full">
         <div className="flex items-center justify-between">
-          <span className="font-display font-bold text-[16px] text-[var(--ink)] tracking-tight">
+          <span className="font-display font-bold text-[15px] text-[var(--ink)] tracking-tight">
             Faruk Gürbüz
           </span>
           <span className="font-plex-mono text-[10px] font-semibold text-[var(--acc)]">
@@ -39,7 +39,7 @@ export function FeaturePhoto({ lang }: { lang: Lang }) {
           </span>
         </div>
 
-        <p className="font-display text-[12px] text-[var(--ink2)] leading-snug">
+        <p className="font-display text-[11.5px] text-[var(--ink2)] leading-snug">
           {t(copy.home.profileRole, lang)}
         </p>
 
