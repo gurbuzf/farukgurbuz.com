@@ -24,6 +24,33 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 
+// ── Mathematical Typesetting Helpers (Vertical Fractions & Square Roots) ──
+function MathFrac({
+  num,
+  den,
+  className = "",
+}: {
+  num: React.ReactNode;
+  den: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <span className={`inline-flex flex-col items-center justify-center align-middle mx-1 leading-none text-center ${className}`}>
+      <span className="border-b border-current px-0.5 pb-[2px] text-center w-full">{num}</span>
+      <span className="pt-[2px] px-0.5 text-center w-full">{den}</span>
+    </span>
+  );
+}
+
+function MathSqrt({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center align-middle mx-0.5">
+      <span className="text-[1.2em] leading-none font-serif select-none mr-[1px]">√</span>
+      <span className="border-t border-current pt-[1px] px-[2px] leading-none">{children}</span>
+    </span>
+  );
+}
+
 export function DamFloodRoutingPlayground() {
   const { lang, dark } = useAtlas();
 
@@ -1258,87 +1285,297 @@ export function DamFloodRoutingPlayground() {
         </button>
 
         {showEquations && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-2 font-display text-[12px] leading-relaxed">
-            {/* Left: 4 Hydraulic Regimes */}
-            <div className="lg:col-span-7 bg-[var(--atlas-card)] p-4 rounded-lg border border-[var(--line)] flex flex-col gap-2.5">
-              <span className="font-plex-mono text-[10px] font-bold text-[var(--ink)] uppercase tracking-wider">
-                {lang === "tr" ? "PARÇALI DEBİ MODELİ Q(t, h):" : "PIECEWISE OUTFLOW DISCHARGE Q(t, h):"}
-              </span>
-
-              {/* Regime 1 */}
-              <div className={`p-2.5 rounded border ${currentFlowBreakdown.regime === 1 ? "bg-sky-500/15 border-sky-500 font-bold" : "bg-[var(--paper)] border-[var(--line)] opacity-80"}`}>
-                <div className="flex justify-between font-plex-mono text-[10px]">
-                  <span>Aşama 1 (h &lt; d): Kısmi Dolu Orifis Akışı</span>
-                  {currentFlowBreakdown.regime === 1 && <span className="text-sky-600">● AKTİF</span>}
+          <div className="flex flex-col gap-4 pt-2 font-display">
+            {/* 1. Master Hydraulic Continuity & Stage-Storage Box */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Left: Continuity Differential Equation */}
+              <div className="bg-[var(--atlas-card)] p-4 rounded-lg border border-[var(--line)] flex flex-col justify-between gap-2.5">
+                <div>
+                  <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider text-[var(--acc)]">
+                    {lang === "tr" ? "1. REZERVUAR KÜTLE KORUNUMU (SÜREKLİLİK DENKLEMİ)" : "1. RESERVOIR MASS CONSERVATION (CONTINUITY EQUATION)"}
+                  </span>
+                  <div className="mt-2.5 p-3 rounded bg-[var(--paper)] border border-[var(--line)] font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[15px] sm:text-[16px] text-center text-[var(--ink)] shadow-2xs">
+                    <MathFrac num={<><span className="italic">d</span><span className="italic">S</span></>} den={<><span className="italic">d</span><span className="italic">t</span></>} />
+                    <span className="mx-2 not-italic">=</span>
+                    <span className="italic">I</span><span className="not-italic">(</span><span className="italic">t</span><span className="not-italic">)</span>
+                    <span className="mx-1.5 not-italic">−</span>
+                    <span className="italic">Q</span><span className="not-italic">(</span><span className="italic">t</span><span className="not-italic">,</span> <span className="italic">h</span><span className="not-italic">)</span>
+                    <span className="mx-3 text-[var(--mut)] not-italic">⟺</span>
+                    <MathFrac num={<><span className="italic">d</span><span className="italic">h</span></>} den={<><span className="italic">d</span><span className="italic">t</span></>} />
+                    <span className="mx-2 not-italic">=</span>
+                    <MathFrac
+                      num={<><span className="italic">I</span><span className="not-italic">(</span><span className="italic">t</span><span className="not-italic">)</span> <span className="not-italic">−</span> <span className="italic">Q</span><span className="not-italic">(</span><span className="italic">t</span><span className="not-italic">,</span> <span className="italic">h</span><span className="not-italic">)</span></>}
+                      den={<><span className="italic">A</span><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span></>}
+                    />
+                  </div>
                 </div>
-                <div className="font-mono text-[11.5px] mt-1 text-[var(--ink)]">
-                  Q<sub>1</sub> = c₁ · r² · [ arccos(1 - h/r) - (1 - h/r)·√(1 - (1 - h/r)²) ] · √(2gh)
+                <p className="text-[11.5px] text-[var(--ink2)] leading-relaxed">
+                  {lang === "tr"
+                    ? "Gelen taşkın debisi I(t) ile baraj çıkış debisi Q(t, h) arasındaki kütle farkı hazne hacmini değiştirir. Seviye artış hızı dh/dt, gölün anlık su yüzey alanı A(h) ile ters orantılıdır."
+                    : "The mass balance difference between inflow I(t) and outflow Q(t, h) changes reservoir storage volume, with water level rise rate dh/dt inversely scaled by dynamic surface area A(h)."}
+                </p>
+              </div>
+
+              {/* Right: Valley Hypsometric Storage-Stage S(h) & Surface Area A(h) */}
+              <div className="bg-[var(--atlas-card)] p-4 rounded-lg border border-[var(--line)] flex flex-col justify-between gap-2.5">
+                <div>
+                  <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider text-[var(--acc)]">
+                    {lang === "tr" ? "2. BATİMETRİK HAZNE HACİM & YÜZEY ALAN EĞRİLERİ" : "2. BATHYMETRIC STAGE-STORAGE & SURFACE AREA CURVES"}
+                  </span>
+                  <div className="mt-2.5 p-2.5 rounded bg-[var(--paper)] border border-[var(--line)] font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[13px] sm:text-[14px] text-center text-[var(--ink)] space-y-1.5 shadow-2xs">
+                    <div>
+                      <span className="italic">S</span><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="mx-1.5 not-italic">=</span>
+                      <span className="italic">S</span><sub className="not-italic text-[10px]">maks</sub>
+                      <span className="mx-1 not-italic">·</span>
+                      <span className="not-italic">[</span>
+                      <span className="not-italic">0.2</span>
+                      <span className="not-italic">(</span>
+                      <MathFrac num={<span className="italic">h</span>} den={<span className="italic">H</span>} className="text-[11.5px]" />
+                      <span className="not-italic">)</span>
+                      <span className="mx-1 not-italic">+</span>
+                      <span className="not-italic">0.8</span>
+                      <span className="not-italic">(</span>
+                      <MathFrac num={<span className="italic">h</span>} den={<span className="italic">H</span>} className="text-[11.5px]" />
+                      <span className="not-italic">)</span><sup className="not-italic text-[10px]">2</sup>
+                      <span className="not-italic">]</span>
+                    </div>
+                    <div className="pt-1 border-t border-[var(--line)]">
+                      <span className="italic">A</span><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="mx-1.5 not-italic">=</span>
+                      <MathFrac num={<><span className="italic">d</span><span className="italic">S</span></>} den={<><span className="italic">d</span><span className="italic">h</span></>} className="text-[11.5px]" />
+                      <span className="mx-1.5 not-italic">=</span>
+                      <MathFrac num={<><span className="italic">S</span><sub className="not-italic text-[9px]">maks</sub></>} den={<span className="italic">H</span>} className="text-[11.5px]" />
+                      <span className="mx-1 not-italic">·</span>
+                      <span className="not-italic">[</span>
+                      <span className="not-italic">0.2</span>
+                      <span className="mx-1 not-italic">+</span>
+                      <span className="not-italic">1.6</span>
+                      <span className="not-italic">(</span>
+                      <MathFrac num={<span className="italic">h</span>} den={<span className="italic">H</span>} className="text-[11.5px]" />
+                      <span className="not-italic">)</span>
+                      <span className="not-italic">]</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[11.5px] text-[var(--ink2)] leading-relaxed">
+                  {lang === "tr"
+                    ? "Doğal vadi topoğrafyasında su seviyesi yükseldikçe vadi genişler; ikinci dereceden paraboloit depolama bağıntısı gerçekçi hazne geometrisini simüle eder."
+                    : "Natural valley bathymetry widens as water elevation climbs, represented accurately by the parabolic hypsometric storage relationship."}
+                </p>
+              </div>
+            </div>
+
+            {/* 2. Piecewise System Formulation & 4 Regime Cards */}
+            <div className="bg-[var(--atlas-card)] p-4 sm:p-5 rounded-lg border border-[var(--line)] flex flex-col gap-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--line)] pb-2.5">
+                <div>
+                  <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider text-[var(--acc)]">
+                    {lang === "tr" ? "3. PARÇALI BARAJ BOŞALIM DEBİSİ SİSTEMİ Q(t, h)" : "3. PIECEWISE DISCHARGE RATING SYSTEM Q(t, h)"}
+                  </span>
+                  <h5 className="font-display font-bold text-[13.5px] text-[var(--ink)]">
+                    {lang === "tr" ? "Su Kotuna (h) Göre Değişen 4 Ayrı Hidrolik Rejim" : "4 Stage-Governed Discrete Hydraulic Regimes"}
+                  </h5>
+                </div>
+                <span className="font-plex-mono text-[10px] text-[var(--mut)]">
+                  {lang === "tr" ? "● Aktif Rejim Canlı Vurgulanır" : "● Live active regime highlighted"}
+                </span>
+              </div>
+
+              {/* Master Piecewise Bracket System */}
+              <div className="p-3 sm:p-4 rounded bg-[var(--paper)] border border-[var(--line)] overflow-x-auto shadow-2xs">
+                <div className="flex items-center gap-2 font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[14px] text-[var(--ink)] min-w-[500px]">
+                  <div className="text-[17px] font-bold pr-1">
+                    <span className="italic">Q</span><span className="not-italic">(</span><span className="italic">t</span><span className="not-italic">,</span> <span className="italic">h</span><span className="not-italic">)</span>
+                    <span className="mx-2 not-italic">=</span>
+                  </div>
+
+                  {/* Classic Piecewise Left Curly Bracket */}
+                  <div className="text-[58px] font-light leading-none select-none text-[var(--ink)] flex-none -my-4">
+                    &#123;
+                  </div>
+
+                  {/* 4 piecewise equation rows */}
+                  <div className="flex flex-col gap-1.5 text-[13px] sm:text-[13.5px] pl-1">
+                    <div className={`flex items-center gap-3 px-2 py-0.5 rounded transition-all ${currentFlowBreakdown.regime === 1 ? "bg-sky-500/15 font-bold text-sky-700 dark:text-sky-300" : "opacity-80"}`}>
+                      <span className="w-16"><span className="italic">Q</span><sub className="not-italic text-[10px]">1</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">),</span></span>
+                      <span className="font-plex-mono text-[11px] text-[var(--mut)] w-36">0 &lt; <span className="italic">h</span> &lt; <span className="italic">d</span></span>
+                      <span className="font-display text-[11px] text-[var(--ink2)]">({lang === "tr" ? "Kısmi Dolu Orifis Akışı" : "Partially Filled Orifice"})</span>
+                    </div>
+
+                    <div className={`flex items-center gap-3 px-2 py-0.5 rounded transition-all ${currentFlowBreakdown.regime === 2 ? "bg-sky-500/15 font-bold text-sky-700 dark:text-sky-300" : "opacity-80"}`}>
+                      <span className="w-16"><span className="italic">Q</span><sub className="not-italic text-[10px]">2</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">),</span></span>
+                      <span className="font-plex-mono text-[11px] text-[var(--mut)] w-36"><span className="italic">d</span> ≤ <span className="italic">h</span> ≤ <span className="italic">H</span><sub className="not-italic text-[9px]">savak</sub></span>
+                      <span className="font-display text-[11px] text-[var(--ink2)]">({lang === "tr" ? "Basınçlı Dip Savak Akışı" : "Pressurized Submerged Orifice"})</span>
+                    </div>
+
+                    <div className={`flex items-center gap-3 px-2 py-0.5 rounded transition-all ${currentFlowBreakdown.regime === 3 ? "bg-sky-500/15 font-bold text-sky-700 dark:text-sky-300" : "opacity-80"}`}>
+                      <span className="w-16"><span className="italic">Q</span><sub className="not-italic text-[10px]">3</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">),</span></span>
+                      <span className="font-plex-mono text-[11px] text-[var(--mut)] w-36"><span className="italic">H</span><sub className="not-italic text-[9px]">savak</sub> &lt; <span className="italic">h</span> ≤ <span className="italic">H</span><sub className="not-italic text-[9px]">kret</sub></span>
+                      <span className="font-display text-[11px] text-[var(--ink2)]">({lang === "tr" ? "Dip Savak + Dolu Savak Akışı" : "Submerged Orifice + Spillway Weir"})</span>
+                    </div>
+
+                    <div className={`flex items-center gap-3 px-2 py-0.5 rounded transition-all ${currentFlowBreakdown.regime === 4 ? "bg-rose-500/20 font-bold text-rose-700 dark:text-rose-300" : "opacity-80"}`}>
+                      <span className="w-16"><span className="italic">Q</span><sub className="not-italic text-[10px]">4</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">),</span></span>
+                      <span className="font-plex-mono text-[11px] text-[var(--mut)] w-36"><span className="italic">h</span> &gt; <span className="italic">H</span><sub className="not-italic text-[9px]">kret</sub></span>
+                      <span className="font-display text-[11px] text-[var(--ink2)]">({lang === "tr" ? "Acil Durum Baraj Kreti Aşımı" : "Emergency Dam Crest Overtopping"})</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Regime 2 */}
-              <div className={`p-2.5 rounded border ${currentFlowBreakdown.regime === 2 ? "bg-sky-500/15 border-sky-500 font-bold" : "bg-[var(--paper)] border-[var(--line)] opacity-80"}`}>
-                <div className="flex justify-between font-plex-mono text-[10px]">
-                  <span>Aşama 2 (d ≤ h ≤ H<sub>savak</sub>): Basınçlı Dip Savak Orifis Akışı</span>
-                  {currentFlowBreakdown.regime === 2 && <span className="text-sky-600">● AKTİF</span>}
+              {/* 4 Discrete Regime Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                {/* Regime 1 Card */}
+                <div className={`p-3.5 rounded-lg border transition-all ${currentFlowBreakdown.regime === 1 ? "bg-sky-500/10 border-sky-500 shadow-sm" : "bg-[var(--paper)] border-[var(--line)] opacity-85"}`}>
+                  <div className="flex justify-between items-center font-plex-mono text-[10.5px]">
+                    <span className="font-bold text-[var(--ink)]">Aşama 1: Kısmi Dolu Orifis (h &lt; d)</span>
+                    {currentFlowBreakdown.regime === 1 && <span className="text-sky-600 font-bold">● AKTİF</span>}
+                  </div>
+                  <div className="mt-2.5 font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[14px] text-[var(--ink)] leading-relaxed overflow-x-auto pb-1">
+                    <div>
+                      <span className="italic">Q</span><sub className="not-italic text-[10px]">1</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="mx-1.5 not-italic">=</span>
+                      <span className="italic">c</span><sub className="not-italic text-[10px]">1</sub>
+                      <span className="mx-1 not-italic">·</span>
+                      <span className="italic">A</span><sub className="not-italic text-[10px]">ıslak</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="mx-1 not-italic">·</span>
+                      <MathSqrt><span className="not-italic">2</span><span className="italic">g</span><span className="italic">h</span></MathSqrt>
+                    </div>
+                    <div className="text-[12px] text-[var(--ink2)] mt-1.5">
+                      <span className="italic">A</span><sub className="not-italic text-[9px]">ıslak</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="mx-1 not-italic">=</span>
+                      <span className="italic">r</span><sup className="not-italic text-[9px]">2</sup>
+                      <span className="mx-0.5 not-italic">[</span>
+                      <span className="not-italic">arccos</span>
+                      <span className="not-italic">(</span><span className="not-italic">1</span> <span className="not-italic">−</span> <MathFrac num={<span className="italic">h</span>} den={<span className="italic">r</span>} className="text-[10px]" /><span className="not-italic">)</span>
+                      <span className="mx-1 not-italic">−</span>
+                      <span className="not-italic">(</span><span className="not-italic">1</span> <span className="not-italic">−</span> <MathFrac num={<span className="italic">h</span>} den={<span className="italic">r</span>} className="text-[10px]" /><span className="not-italic">)</span>
+                      <MathSqrt>
+                        <span className="not-italic">1</span> <span className="not-italic">−</span>
+                        <span className="not-italic">(</span><span className="not-italic">1</span> <span className="not-italic">−</span> <MathFrac num={<span className="italic">h</span>} den={<span className="italic">r</span>} className="text-[9px]" /><span className="not-italic">)</span><sup className="not-italic text-[8px]">2</sup>
+                      </MathSqrt>
+                      <span className="mx-0.5 not-italic">]</span>
+                      <span className="ml-2 text-[var(--mut)]">, <span className="italic">r</span> = <MathFrac num={<span className="italic">d</span>} den="2" className="text-[10px]" /></span>
+                    </div>
+                  </div>
                 </div>
-                <div className="font-mono text-[11.5px] mt-1 text-[var(--ink)]">
-                  Q<sub>2</sub> = c₁ · A<sub>orifis</sub> · √(2gh) &nbsp;&nbsp;[A<sub>orifis</sub> = π·d² / 4]
-                </div>
-              </div>
 
-              {/* Regime 3 */}
-              <div className={`p-2.5 rounded border ${currentFlowBreakdown.regime === 3 ? "bg-sky-500/15 border-sky-500 font-bold" : "bg-[var(--paper)] border-[var(--line)] opacity-80"}`}>
-                <div className="flex justify-between font-plex-mono text-[10px]">
-                  <span>Aşama 3 (H<sub>savak</sub> &lt; h ≤ H<sub>kret</sub>): Dip Savak + Dolu Savak Savaklanması</span>
-                  {currentFlowBreakdown.regime === 3 && <span className="text-sky-600">● AKTİF</span>}
+                {/* Regime 2 Card */}
+                <div className={`p-3.5 rounded-lg border transition-all ${currentFlowBreakdown.regime === 2 ? "bg-sky-500/10 border-sky-500 shadow-sm" : "bg-[var(--paper)] border-[var(--line)] opacity-85"}`}>
+                  <div className="flex justify-between items-center font-plex-mono text-[10.5px]">
+                    <span className="font-bold text-[var(--ink)]">Aşama 2: Basınçlı Dip Savak (d ≤ h ≤ H_savak)</span>
+                    {currentFlowBreakdown.regime === 2 && <span className="text-sky-600 font-bold">● AKTİF</span>}
+                  </div>
+                  <div className="mt-2.5 font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[14px] text-[var(--ink)] leading-relaxed overflow-x-auto pb-1">
+                    <div>
+                      <span className="italic">Q</span><sub className="not-italic text-[10px]">2</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="mx-1.5 not-italic">=</span>
+                      <span className="italic">c</span><sub className="not-italic text-[10px]">1</sub>
+                      <span className="mx-1 not-italic">·</span>
+                      <span className="italic">A</span><sub className="not-italic text-[10px]">o</sub>
+                      <span className="mx-1 not-italic">·</span>
+                      <MathSqrt><span className="not-italic">2</span><span className="italic">g</span><span className="italic">h</span></MathSqrt>
+                    </div>
+                    <div className="text-[12px] text-[var(--ink2)] mt-1.5">
+                      <span className="not-italic">burada </span>
+                      <span className="italic">A</span><sub className="not-italic text-[9px]">o</sub>
+                      <span className="mx-1 not-italic">=</span>
+                      <MathFrac num={<><span className="not-italic">π</span> <span className="italic">d</span><sup className="not-italic text-[8px]">2</sup></>} den={<span className="not-italic">4</span>} className="text-[10.5px]" />
+                      <span className="ml-2 text-[var(--mut)]">({lang === "tr" ? "Dolu kesit orifis alanı" : "Full orifice barrel area"})</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="font-mono text-[11.5px] mt-1 text-[var(--ink)]">
-                  Q<sub>3</sub> = Q<sub>orifis</sub> + c₂ · L<sub>savak</sub> · [ (h - H<sub>savak</sub>) / H<sub>r</sub> ]<sup>3/2</sup>
-                </div>
-              </div>
 
-              {/* Regime 4 */}
-              <div className={`p-2.5 rounded border ${currentFlowBreakdown.regime === 4 ? "bg-rose-500/20 border-rose-500 font-bold text-rose-700 dark:text-rose-300" : "bg-[var(--paper)] border-[var(--line)] opacity-80"}`}>
-                <div className="flex justify-between font-plex-mono text-[10px]">
-                  <span>Aşama 4 (h &gt; H<sub>kret</sub>): Dip Savak + Dolu Savak + Baraj Kreti Aşımı</span>
-                  {currentFlowBreakdown.regime === 4 && <span>⚠️ KRİTİK AŞIM</span>}
+                {/* Regime 3 Card */}
+                <div className={`p-3.5 rounded-lg border transition-all ${currentFlowBreakdown.regime === 3 ? "bg-sky-500/10 border-sky-500 shadow-sm" : "bg-[var(--paper)] border-[var(--line)] opacity-85"}`}>
+                  <div className="flex justify-between items-center font-plex-mono text-[10.5px]">
+                    <span className="font-bold text-[var(--ink)]">Aşama 3: Dip + Dolu Savak (H_savak &lt; h ≤ H_kret)</span>
+                    {currentFlowBreakdown.regime === 3 && <span className="text-sky-600 font-bold">● AKTİF</span>}
+                  </div>
+                  <div className="mt-2.5 font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[14px] text-[var(--ink)] leading-relaxed overflow-x-auto pb-1">
+                    <div>
+                      <span className="italic">Q</span><sub className="not-italic text-[10px]">3</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="mx-1.5 not-italic">=</span>
+                      <span className="italic">Q</span><sub className="not-italic text-[10px]">2</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="mx-1.5 not-italic">+</span>
+                      <span className="italic">c</span><sub className="not-italic text-[10px]">2</sub>
+                      <span className="mx-1 not-italic">·</span>
+                      <span className="italic">L</span><sub className="not-italic text-[10px]">savak</sub>
+                      <span className="mx-1 not-italic">·</span>
+                      <span className="not-italic">[</span>
+                      <MathFrac num={<><span className="italic">h</span> <span className="not-italic">−</span> <span className="italic">H</span><sub className="not-italic text-[8px]">savak</sub></>} den={<><span className="italic">H</span><sub className="not-italic text-[8px]">r</sub></>} className="text-[11.5px]" />
+                      <span className="not-italic">]</span>
+                      <sup className="not-italic text-[11px] align-super">
+                        <MathFrac num="3" den="2" className="text-[8px]" />
+                      </sup>
+                    </div>
+                    <div className="text-[11px] text-[var(--mut)] mt-1.5">
+                      {lang === "tr" ? "(L_savak = 0 durumunda savak akışı sıfırdır)" : "(When L_spill = 0, spillway flow is zero)"}
+                    </div>
+                  </div>
                 </div>
-                <div className="font-mono text-[11.5px] mt-1 text-[var(--ink)]">
-                  Q<sub>4</sub> = Q<sub>orifis</sub> + Q<sub>savak</sub> + c₂ · (L<sub>kret</sub> - L<sub>savak</sub>) · [ (h - H<sub>kret</sub>) / H<sub>r</sub> ]<sup>3/2</sup>
+
+                {/* Regime 4 Card */}
+                <div className={`p-3.5 rounded-lg border transition-all ${currentFlowBreakdown.regime === 4 ? "bg-rose-500/15 border-rose-500 shadow-sm text-rose-700 dark:text-rose-300" : "bg-[var(--paper)] border-[var(--line)] opacity-85"}`}>
+                  <div className="flex justify-between items-center font-plex-mono text-[10.5px]">
+                    <span className="font-bold">Aşama 4: Baraj Kreti Aşımı (h &gt; H_kret)</span>
+                    {currentFlowBreakdown.regime === 4 && <span className="font-bold animate-pulse">⚠️ KRİTİK AŞIM</span>}
+                  </div>
+                  <div className="mt-2.5 font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[14px] text-[var(--ink)] leading-relaxed overflow-x-auto pb-1">
+                    <div>
+                      <span className="italic">Q</span><sub className="not-italic text-[10px]">4</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="mx-1.5 not-italic">=</span>
+                      <span className="italic">Q</span><sub className="not-italic text-[10px]">2</sub>
+                      <span className="mx-1.5 not-italic">+</span>
+                      <span className="italic">Q</span><sub className="not-italic text-[10px]">savak</sub>
+                      <span className="mx-1.5 not-italic">+</span>
+                      <span className="italic">c</span><sub className="not-italic text-[10px]">2</sub>
+                      <span className="mx-1 not-italic">·</span>
+                      <span className="not-italic">(</span><span className="italic">L</span><sub className="not-italic text-[10px]">kret</sub> <span className="not-italic">−</span> <span className="italic">L</span><sub className="not-italic text-[10px]">savak</sub><span className="not-italic">)</span>
+                      <span className="mx-1 not-italic">·</span>
+                      <span className="not-italic">[</span>
+                      <MathFrac num={<><span className="italic">h</span> <span className="not-italic">−</span> <span className="italic">H</span><sub className="not-italic text-[8px]">kret</sub></>} den={<><span className="italic">H</span><sub className="not-italic text-[8px]">r</sub></>} className="text-[11.5px]" />
+                      <span className="not-italic">]</span>
+                      <sup className="not-italic text-[11px] align-super">
+                        <MathFrac num="3" den="2" className="text-[8px]" />
+                      </sup>
+                    </div>
+                    <div className="text-[11px] text-rose-600 dark:text-rose-400 mt-1.5">
+                      {lang === "tr" ? "Acil durum: Su seviyesi gövde kret kotunu aşarak serbest taşma yapar." : "Emergency: Flood stage overtops non-overflow dam crest monolith."}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Right: Mass Balance & Level-Pool Integration */}
-            <div className="lg:col-span-5 bg-[var(--atlas-card)] p-4 rounded-lg border border-[var(--line)] flex flex-col justify-between gap-3">
-              <div>
-                <span className="font-plex-mono text-[10px] font-bold text-[var(--ink)] uppercase tracking-wider">
-                  {lang === "tr" ? "REZERVUAR KÜTLE KORUNUMU:" : "RESERVOIR CONTINUITY EQUATION:"}
-                </span>
-                <div className="mt-2 text-[var(--ink)] space-y-2">
-                  <div className="p-2.5 rounded bg-[var(--paper)] border border-[var(--line)] font-mono text-[12.5px] text-center font-bold">
-                    dS / dt = I(t) - Q(t, h)
-                  </div>
-                  <div className="p-2 rounded bg-[var(--paper)] border border-[var(--line)] font-mono text-[10.5px] text-center text-[var(--ink2)] space-y-0.5">
-                    <div>A(h) · (dh / dt) = I(t) - Q(t, h)</div>
-                    <div className="text-[9.5px] text-[var(--mut)]">
-                      S(h) = S<sub>maks</sub> · [ 0.2·(h/H) + 0.8·(h/H)² ] &nbsp;|&nbsp; A(h) = dS/dh
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-[var(--ink2)] leading-relaxed mt-1">
-                    {lang === "tr"
-                      ? "Gelen taşkın debisi I(t) ile çıkış debisi Q(t, h) arasındaki fark rezervuar hacmini değiştirir. Vadi topoğrafyasına bağlı hazne hacim-kot eğrisi S(h) ve anlık su yüzeyi alanı A(h) üzerinden seviye artışı dh/dt hesaplanır. 4. Mertebe Runge-Kutta (RK4) sayısal algoritması bu diferansiyel denklemi adım adım çözer."
-                      : "The difference between inflow I(t) and discharge Q(t, h) drives the change in stored water volume. The dynamic valley stage-storage curve S(h) and surface area A(h) govern the water level rate dh/dt, integrated using a 4th-Order Runge-Kutta (RK4) scheme."}
-                  </p>
-                </div>
+            {/* 3. Numerical Integration Scheme (RK4) */}
+            <div className="bg-[var(--atlas-card)] p-4 rounded-lg border border-[var(--line)] flex flex-col gap-2">
+              <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider text-[var(--acc)]">
+                {lang === "tr" ? "4. DİFERANSİYEL SÜREKLİLİK DENKLEMİNİN SAYISAL ÇÖZÜMÜ (4. MERTEBE RUNGE-KUTTA / RK4)" : "4. NUMERICAL INTEGRATION SCHEME (4TH-ORDER RUNGE-KUTTA / RK4)"}
+              </span>
+              <div className="p-3 rounded bg-[var(--paper)] border border-[var(--line)] font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[13.5px] sm:text-[14.5px] text-center text-[var(--ink)] overflow-x-auto shadow-2xs">
+                <span className="italic">h</span><sub className="not-italic text-[10px]">n+1</sub>
+                <span className="mx-2 not-italic">=</span>
+                <span className="italic">h</span><sub className="not-italic text-[10px]">n</sub>
+                <span className="mx-2 not-italic">+</span>
+                <MathFrac num={<span className="not-italic">Δt</span>} den={<span className="not-italic">6</span>} className="text-[12px]" />
+                <span className="mx-1 not-italic">·</span>
+                <span className="not-italic">[</span>
+                <span className="italic">k</span><sub className="not-italic text-[10px]">1</sub>
+                <span className="mx-1.5 not-italic">+</span>
+                <span className="not-italic">2</span><span className="italic">k</span><sub className="not-italic text-[10px]">2</sub>
+                <span className="mx-1.5 not-italic">+</span>
+                <span className="not-italic">2</span><span className="italic">k</span><sub className="not-italic text-[10px]">3</sub>
+                <span className="mx-1.5 not-italic">+</span>
+                <span className="italic">k</span><sub className="not-italic text-[10px]">4</sub>
+                <span className="not-italic">]</span>
               </div>
-
-              <div className="p-2 rounded bg-[var(--paper)] border border-[var(--line)] text-[10px] text-[var(--mut)]">
-                💡 <strong>{lang === "tr" ? "Hidrolik Prensip:" : "Hydraulic Principle:"}</strong>{" "}
+              <div className="p-2.5 rounded bg-[var(--paper)] border border-[var(--line)] text-[11px] text-[var(--mut)]">
+                💡 <strong>{lang === "tr" ? "Sayısal Prensip:" : "Numerical Principle:"}</strong>{" "}
                 {lang === "tr"
-                  ? "Taşkın ötelemesi, gelen taşkının pik debisini rezervuar depolamasıyla kırparak mansaba aktarılan pik yükü geciktirir ve güvenli seviyede tutar."
-                  : "Reservoir routing detains floodwater, shaving the sharp inflow peak and delaying discharge to protect downstream life and assets."}
+                  ? "Diferansiyel denklem her zaman adımında k₁, k₂, k₃, k₄ eğim katsayıları hesaplanarak 4. mertebeden yüksek hassasiyet ve kararlılıkla entegre edilir."
+                  : "The non-linear continuity differential equation is integrated at each time step using 4 weighted slope estimates for superior numerical stability."}
               </div>
             </div>
           </div>
