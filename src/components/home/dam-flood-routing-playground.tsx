@@ -380,61 +380,40 @@ export function DamFloodRoutingPlayground() {
             </div>
           </div>
 
-          {/* 2D Engineering Vector Canvas */}
-          <div className="relative w-full bg-[var(--paper)] border border-[var(--line)] rounded-lg overflow-hidden p-2 sm:p-4 shadow-inner">
+          {/* 2D Minimalist Engineering Vector Canvas */}
+          <div className="relative w-full bg-[var(--paper)] border border-[var(--line)] rounded-lg overflow-hidden p-3 sm:p-5 shadow-inner">
             <svg
-              viewBox="0 0 760 380"
-              className="w-full h-auto block select-none drop-shadow-xs"
+              viewBox="0 0 720 320"
+              className="w-full h-auto block select-none"
               aria-label="2D Dam Engineering Hydraulic Diagram"
             >
               <defs>
-                {/* Reservoir Water Depth Gradient */}
-                <linearGradient id="eng-water-grad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-                  <stop offset="60%" stopColor="#0284c7" stopOpacity="0.88" />
-                  <stop offset="100%" stopColor="#075985" stopOpacity="0.95" />
+                {/* Clean Water Gradient */}
+                <linearGradient id="clean-water" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.85" />
+                  <stop offset="100%" stopColor="#0284c7" stopOpacity="0.95" />
                 </linearGradient>
 
-                {/* Concrete Gravity Dam Gradient */}
-                <linearGradient id="eng-concrete-grad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor={dark ? "#475569" : "#e2e8f0"} />
-                  <stop offset="40%" stopColor={dark ? "#334155" : "#cbd5e1"} />
+                {/* Clean Concrete Dam Gradient */}
+                <linearGradient id="clean-dam" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor={dark ? "#475569" : "#cbd5e1"} />
                   <stop offset="100%" stopColor={dark ? "#1e293b" : "#94a3b8"} />
                 </linearGradient>
 
-                {/* Bedrock Foundation Stratum Gradient */}
-                <linearGradient id="eng-rock-grad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={dark ? "#27272a" : "#785336"} />
-                  <stop offset="100%" stopColor={dark ? "#18181b" : "#451a03"} />
-                </linearGradient>
-
-                {/* Spillway High-Velocity Water Cascade */}
-                <linearGradient id="eng-cascade-grad" x1="0" y1="0" x2="0" y2="1">
+                {/* Clean Overflow Water Cascade */}
+                <linearGradient id="clean-cascade" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#bae6fd" stopOpacity="0.95" />
                   <stop offset="100%" stopColor="#0284c7" stopOpacity="0.85" />
                 </linearGradient>
-
-                {/* Foundation Rock Hatch Pattern */}
-                <pattern id="rock-hatch" width="12" height="12" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-                  <line x1="0" y1="0" x2="0" y2="12" stroke={dark ? "#3f3f46" : "#a16207"} strokeWidth="1" strokeOpacity="0.4" />
-                </pattern>
-
-                {/* Grid Background Pattern for Blueprint Aesthetics */}
-                <pattern id="eng-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--line)" strokeWidth="0.5" strokeOpacity="0.5" />
-                </pattern>
               </defs>
 
-              {/* Background Grid */}
-              <rect width="760" height="380" fill="url(#eng-grid)" />
-
               {/* ══════════════════════════════════════════════════════════════ */}
-              {/* ── MODE 1: 2D HYDRAULIC PROFILE (CROSS-SECTION) ───────────── */}
+              {/* ── MODE 1: 2D HYDRAULIC PROFILE (DAM CROSS-SECTION) ───────── */}
               {/* ══════════════════════════════════════════════════════════════ */}
               {damViewMode === "profile" && (() => {
-                // Coordinate & Physical Geometry Constants:
-                const yBase = 295; // Bedrock foundation surface line
-                const scale = 7.8;  // pixels per meter vertical scale
+                // Ground Baseline & Scale
+                const yBase = 250;
+                const scale = 7.0; // pixels per meter
 
                 const hMaxPx = dam.hMax * scale;
                 const hSpillPx = dam.hSpill * scale;
@@ -442,253 +421,107 @@ export function DamFloodRoutingPlayground() {
 
                 const yCrest = yBase - hMaxPx;
                 const ySpill = yBase - hSpillPx;
-                const yWater = Math.max(30, yBase - hWaterPx);
+                const yWater = Math.max(20, yBase - hWaterPx);
 
-                // Upstream Face at x = 230
-                const xUp = 230;
-                // Crest width = 35px
-                const xCrestEnd = xUp + 35;
-                // Downstream toe position (slope ~ 1:0.75)
-                const downToeX = xUp + 35 + hSpillPx * 0.78;
-                // Stilling basin apron end
-                const basinEndX = downToeX + 75;
+                // Dam Profile Geometry
+                const xUp = 230;            // Upstream vertical face
+                const xCrestEnd = xUp + 40; // Crest road width
+                const xToe = xCrestEnd + hSpillPx * 0.85; // Downstream toe
+                const xOutEnd = 670;        // Downstream channel extent
 
-                // Orifice pipe coordinates:
-                const orifY = yBase - 22; // centerline of pipe near base
-                const orifDpx = Math.max(7, Math.min(22, dam.orificeDiameter * scale * 0.8));
-                const orifExitX = downToeX - 25;
+                // Bottom Orifice Geometry
+                const orifY = yBase - 18;
+                const orifDpx = Math.max(8, Math.min(22, dam.orificeDiameter * 4.5));
+                const orifExitX = xToe - 18;
 
                 return (
-                  <g className="dam-2d-profile">
-                    {/* 1. Bedrock Foundation & Cutoff Curtain */}
-                    <rect x="20" y={yBase} width="720" height="75" fill="url(#eng-rock-grad)" />
-                    <rect x="20" y={yBase} width="720" height="75" fill="url(#rock-hatch)" />
-                    <line x1="20" y1={yBase} x2="740" y2={yBase} stroke={dark ? "#52525b" : "#292524"} strokeWidth={1.5} />
+                  <g className="clean-dam-cross-section">
+                    {/* Ground Foundation Line */}
+                    <rect x="50" y={yBase} width="630" height="40" fill={dark ? "#18181b" : "#e2e8f0"} opacity={0.6} />
+                    <line x1="50" y1={yBase} x2="680" y2={yBase} stroke={dark ? "#52525b" : "#94a3b8"} strokeWidth={1.5} />
 
-                    {/* Cutoff Grout Curtain beneath Dam Heel */}
-                    <rect
-                      x={xUp + 5}
-                      y={yBase}
-                      width="16"
-                      height="50"
-                      fill={dark ? "#1e293b" : "#78716c"}
-                      stroke={dark ? "#475569" : "#44403c"}
-                      strokeWidth={1}
-                    />
-                    <text
-                      x={xUp + 13}
-                      y={yBase + 62}
-                      textAnchor="middle"
-                      fontSize="8"
-                      fontFamily="var(--font-ibm-plex-mono), monospace"
-                      fill="var(--mut)"
-                    >
-                      {lang === "tr" ? "Enjeksiyon Perdesi" : "Grout Curtain"}
-                    </text>
-
-                    {/* Natural Upstream Valley Ground Bank */}
-                    <polygon
-                      points={`20,100 85,${yBase} 20,${yBase}`}
-                      fill={dark ? "#27272a" : "#785336"}
-                      opacity={0.8}
-                    />
-
-                    {/* Reservoir Silt Sediment Layer */}
-                    <rect
-                      x="85"
-                      y={yBase - 8}
-                      width={xUp - 85}
-                      height="8"
-                      fill={dark ? "#3f3f46" : "#854d0e"}
-                      opacity={0.7}
-                    />
-                    <text
-                      x="145"
-                      y={yBase - 2}
-                      textAnchor="middle"
-                      fontSize="7.5"
-                      fontFamily="var(--font-ibm-plex-mono), monospace"
-                      fill="#ffffff"
-                      opacity={0.85}
-                    >
-                      {lang === "tr" ? "Dip Rüsubat / Sediment" : "Reservoir Silt Bed"}
-                    </text>
-
-                    {/* 2. Upstream Reservoir Water Body */}
+                    {/* 1. Reservoir Water Body (Left of Dam) */}
                     {hWaterPx > 1 && (
-                      <g className="reservoir-water">
-                        <polygon
-                          points={`85,${yBase - 8} ${xUp},${yBase - 8} ${xUp},${yWater} ${Math.max(20, 85 - (yBase - yWater) * 0.35)},${yWater}`}
-                          fill="url(#eng-water-grad)"
+                      <g className="clean-reservoir">
+                        <rect
+                          x="100"
+                          y={yWater}
+                          width={xUp - 100}
+                          height={yBase - yWater}
+                          fill="url(#clean-water)"
                         />
-
-                        {/* Animated Water Surface Waves */}
+                        {/* Water Surface Line */}
                         <line
-                          x1={Math.max(20, 85 - (yBase - yWater) * 0.35)}
+                          x1="90"
                           y1={yWater}
                           x2={xUp}
                           y2={yWater}
                           stroke="#38bdf8"
-                          strokeWidth={2.5}
-                          strokeDasharray="14 4"
+                          strokeWidth={2}
                         />
-
-                        {/* Floating Water Stage Indicator Flag ∇ */}
-                        <g transform={`translate(150, ${yWater})`}>
-                          <polygon points="0,0 -7,-12 7,-12" fill="#0284c7" stroke="#ffffff" strokeWidth={1} />
-                          <line x1="-12" y1="-12" x2="12" y2="-12" stroke="#0284c7" strokeWidth={1.5} />
-                          <rect x="16" y="-22" width="76" height="18" rx="3" fill="var(--frame)" />
+                        {/* Live Water Level Badge */}
+                        <g transform={`translate(145, ${yWater - 12})`}>
+                          <rect x="-35" y="-8" width="70" height="18" rx="4" fill="#0284c7" />
                           <text
-                            x="54"
-                            y="-10"
+                            x="0"
+                            y="4.5"
                             textAnchor="middle"
-                            fontSize="9.5"
+                            fontSize="10"
                             fontFamily="var(--font-ibm-plex-mono), monospace"
                             fontWeight="bold"
-                            fill="var(--paper)"
+                            fill="#ffffff"
                           >
                             h = {currentStage.toFixed(2)}m
-                          </text>
-                        </g>
-
-                        {/* Hydrostatic Pressure Distribution Triangle */}
-                        <g className="hydrostatic-pressure" opacity={0.65}>
-                          <polygon
-                            points={`${xUp},${yWater} ${xUp},${yBase - 8} ${xUp - Math.min(50, hWaterPx * 0.28)},${yBase - 8}`}
-                            fill="#0284c7"
-                            opacity={0.18}
-                            stroke="#0284c7"
-                            strokeWidth={1}
-                            strokeDasharray="3 2"
-                          />
-                          {/* Hydrostatic Arrows */}
-                          <line x1={xUp - 16} y1={yBase - 15} x2={xUp - 3} y2={yBase - 15} stroke="#0284c7" strokeWidth={1.5} markerEnd="url(#arrow)" />
-                          <line x1={xUp - 10} y1={yBase - 35} x2={xUp - 3} y2={yBase - 35} stroke="#0284c7" strokeWidth={1.2} />
-                          <text
-                            x={xUp - 26}
-                            y={yBase - 12}
-                            fontSize="8"
-                            fontFamily="var(--font-ibm-plex-mono), monospace"
-                            fill="#0284c7"
-                            fontWeight="bold"
-                          >
-                            p = γ·h
                           </text>
                         </g>
                       </g>
                     )}
 
-                    {/* 3. Concrete Dam Cross-Section Body */}
-                    {/* Gravity profile: Vertical upstream face -> Crest roadway -> Ogee curve -> Downstream chute -> Toe curve -> Stilling basin */}
-                    <path
-                      d={`
-                        M ${xUp} ${yBase}
-                        L ${xUp} ${yCrest}
-                        L ${xCrestEnd} ${yCrest}
-                        L ${xCrestEnd} ${ySpill}
-                        Q ${xCrestEnd + 20} ${ySpill} ${xCrestEnd + 35} ${ySpill + 16}
-                        L ${downToeX} ${yBase - 12}
-                        Q ${downToeX + 15} ${yBase} ${downToeX + 30} ${yBase}
-                        L ${basinEndX} ${yBase}
-                        L ${basinEndX} ${yBase - 14}
-                        L ${basinEndX + 12} ${yBase - 14}
-                        L ${basinEndX + 12} ${yBase}
-                        L ${basinEndX + 130} ${yBase}
-                        L ${basinEndX + 130} ${yBase + 40}
-                        L ${xUp} ${yBase + 40}
-                        Z
+                    {/* 2. Concrete Dam Monolith (Iconic Gravity Profile) */}
+                    <polygon
+                      points={`
+                        ${xUp},${yBase}
+                        ${xUp},${yCrest}
+                        ${xCrestEnd},${yCrest}
+                        ${xCrestEnd},${ySpill}
+                        ${xToe},${yBase}
+                        ${xUp},${yBase}
                       `}
-                      fill="url(#eng-concrete-grad)"
+                      fill="url(#clean-dam)"
                       stroke={dark ? "#64748b" : "#475569"}
-                      strokeWidth={1.8}
+                      strokeWidth={2}
+                      strokeLinejoin="round"
                     />
 
-                    {/* Crest Parapet Safety Railings */}
-                    <line x1={xUp} y1={yCrest - 6} x2={xCrestEnd} y2={yCrest - 6} stroke="var(--ink)" strokeWidth={1.5} />
-                    <line x1={xUp} y1={yCrest} x2={xUp} y2={yCrest - 6} stroke="var(--ink)" strokeWidth={1.5} />
-                    <line x1={xCrestEnd} y1={yCrest} x2={xCrestEnd} y2={yCrest - 6} stroke="var(--ink)" strokeWidth={1.5} />
-
-                    {/* Concrete Construction Lift Lines (Realistic Dam Joints) */}
-                    {[1, 2, 3, 4, 5].map((idx) => {
-                      const yJoint = yBase - idx * 28;
-                      if (yJoint <= yCrest + 5) return null;
-                      // Calculate width at this height
-                      const rightX = yJoint < ySpill
-                        ? xCrestEnd
-                        : Math.min(downToeX, xCrestEnd + (yJoint - ySpill) * 0.75 + 15);
-                      return (
-                        <line
-                          key={idx}
-                          x1={xUp}
-                          y1={yJoint}
-                          x2={rightX}
-                          y2={yJoint}
-                          stroke={dark ? "#334155" : "#cbd5e1"}
-                          strokeWidth={0.8}
-                          strokeDasharray="6 3"
-                        />
-                      );
-                    })}
-
-                    {/* Internal Dam Inspection & Drainage Gallery Tunnel */}
-                    <circle cx={xUp + 32} cy={yBase - 28} r={9} fill={dark ? "#0f172a" : "#475569"} stroke="var(--frame)" strokeWidth={1} />
-                    <text
-                      x={xUp + 32}
-                      y={yBase - 25}
-                      textAnchor="middle"
-                      fontSize="6.5"
-                      fontFamily="var(--font-ibm-plex-mono), monospace"
-                      fill="#ffffff"
-                    >
-                      {lang === "tr" ? "GALERİ" : "GALLERY"}
-                    </text>
-
-                    {/* Stilling Basin Baffle Blocks / Dentated Sill */}
-                    <rect
-                      x={downToeX + 45}
-                      y={yBase - 10}
-                      width="10"
-                      height="10"
-                      fill={dark ? "#1e293b" : "#475569"}
-                      stroke={dark ? "#475569" : "#1e293b"}
-                      strokeWidth={1}
+                    {/* Spillway Level Dashed Reference Line across dam */}
+                    <line
+                      x1={xUp}
+                      y1={ySpill}
+                      x2={xCrestEnd}
+                      y2={ySpill}
+                      stroke="#38bdf8"
+                      strokeWidth={1.5}
+                      strokeDasharray="4 3"
                     />
 
-                    {/* 4. Bottom Outlet (Low-Level Orifice Conduit) */}
-                    <g className="eng-orifice-conduit">
-                      {/* Conduit Tunnel Bore through Dam */}
+                    {/* 3. Bottom Outlet Orifice Pipe & Jet */}
+                    <g className="clean-orifice">
+                      {/* Pipe conduit */}
                       <rect
                         x={xUp - 4}
                         y={orifY - orifDpx / 2}
                         width={orifExitX - xUp + 4}
                         height={orifDpx}
-                        fill={currentFlowBreakdown.qOrifice > 0 ? "url(#eng-water-grad)" : (dark ? "#09090b" : "#1e293b")}
+                        fill={currentFlowBreakdown.qOrifice > 0 ? "#0284c7" : (dark ? "#09090b" : "#334155")}
                         stroke="#38bdf8"
                         strokeWidth={1.2}
                       />
-
-                      {/* Upstream Intake Bellmouth & Trash Rack */}
-                      <rect
-                        x={xUp - 8}
-                        y={orifY - orifDpx / 2 - 3}
-                        width="5"
-                        height={orifDpx + 6}
-                        fill="#0284c7"
-                        stroke="#38bdf8"
-                        strokeWidth={1}
-                      />
-                      <line x1={xUp - 8} y1={orifY - orifDpx / 2} x2={xUp - 3} y2={orifY - orifDpx / 2} stroke="#ffffff" strokeWidth={1} />
-                      <line x1={xUp - 8} y1={orifY + orifDpx / 2} x2={xUp - 3} y2={orifY + orifDpx / 2} stroke="#ffffff" strokeWidth={1} />
-
-                      {/* Vertical Gate Stem Tower */}
-                      <line x1={xUp + 60} y1={orifY - orifDpx / 2} x2={xUp + 60} y2={ySpill - 10} stroke="#64748b" strokeWidth={2} />
-                      <circle cx={xUp + 60} cy={ySpill - 10} r="4" fill="#0284c7" stroke="#ffffff" strokeWidth={1} />
-
-                      {/* Orifice Diameter Label */}
+                      {/* Orifice Diameter Tag */}
                       <text
-                        x={xUp + 18}
-                        y={orifY - orifDpx / 2 - 5}
-                        fontSize="8.5"
+                        x={(xUp + orifExitX) / 2}
+                        y={orifY - orifDpx / 2 - 4}
+                        textAnchor="middle"
+                        fontSize="9"
                         fontFamily="var(--font-ibm-plex-mono), monospace"
                         fontWeight="bold"
                         fill="#0284c7"
@@ -696,204 +529,119 @@ export function DamFloodRoutingPlayground() {
                         d = {dam.orificeDiameter}m
                       </text>
 
-                      {/* High-Velocity Parabolic Jet Discharging Downstream */}
+                      {/* Pressurized Water Jet */}
                       {currentFlowBreakdown.qOrifice > 0.05 && (() => {
-                        const jetSpeedFactor = Math.min(1.4, Math.max(0.4, Math.sqrt(currentStage) * 0.3));
-                        const jetEndX = Math.min(basinEndX + 60, orifExitX + 80 * jetSpeedFactor);
-                        const jetLandingY = yBase - 2;
+                        const jetReach = Math.min(160, Math.max(50, Math.sqrt(currentStage) * 35));
+                        const jetEndX = orifExitX + jetReach;
 
                         return (
-                          <g className="pressurized-orifice-jet">
-                            {/* Parabolic Jet Stream */}
+                          <g className="clean-jet">
                             <path
                               d={`
                                 M ${orifExitX} ${orifY - orifDpx / 2}
-                                Q ${orifExitX + 35 * jetSpeedFactor} ${orifY - 5} ${jetEndX} ${jetLandingY}
-                                L ${jetEndX - 10} ${jetLandingY}
-                                Q ${orifExitX + 25 * jetSpeedFactor} ${orifY + 5} ${orifExitX} ${orifY + orifDpx / 2}
+                                Q ${orifExitX + jetReach * 0.45} ${orifY - 4} ${jetEndX} ${yBase}
+                                L ${jetEndX - 10} ${yBase}
+                                Q ${orifExitX + jetReach * 0.35} ${orifY + 4} ${orifExitX} ${orifY + orifDpx / 2}
                                 Z
                               `}
-                              fill="url(#eng-cascade-grad)"
-                              opacity={0.9}
-                            />
-                            {/* Aerated Splash at Impact */}
-                            <ellipse
-                              cx={jetEndX}
-                              cy={jetLandingY}
-                              rx={14 * jetSpeedFactor}
-                              ry={5}
-                              fill="#bae6fd"
-                              opacity={0.8}
+                              fill="url(#clean-cascade)"
                             />
                             <text
-                              x={jetEndX + 16}
-                              y={jetLandingY - 8}
-                              fontSize="9"
+                              x={jetEndX + 8}
+                              y={yBase - 8}
+                              fontSize="9.5"
                               fontFamily="var(--font-ibm-plex-mono), monospace"
                               fontWeight="bold"
                               fill="#0284c7"
                             >
-                              q_dip: {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s
+                              q_orif: {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s
                             </text>
                           </g>
                         );
                       })()}
                     </g>
 
-                    {/* 5. Spillway Weir Overflow Sheet (When h > H_spill) */}
+                    {/* 4. Spillway Overflow Water Sheet (when h > H_spill) */}
                     {isCurrentlySpilling && (() => {
-                      const headOnWeir = currentStage - dam.hSpill;
-                      const nappeThickPx = Math.max(3, Math.min(22, headOnWeir * scale * 0.6));
+                      const head = currentStage - dam.hSpill;
+                      const sheetThick = Math.max(3, Math.min(18, head * scale * 0.5));
 
                       return (
-                        <g className="spillway-overflow-nappe">
-                          {/* Smooth curved overflow nappe over ogee crest and chute */}
-                          <path
-                            d={`
-                              M ${xCrestEnd} ${ySpill}
-                              Q ${xCrestEnd + 20} ${ySpill} ${xCrestEnd + 35} ${ySpill + 16}
-                              L ${downToeX} ${yBase - 12}
-                              Q ${downToeX + 15} ${yBase} ${downToeX + 30} ${yBase}
-                              L ${basinEndX} ${yBase}
-                              L ${basinEndX} ${yBase - nappeThickPx * 0.8}
-                              Q ${downToeX + 20} ${yBase - nappeThickPx} ${downToeX - 5} ${yBase - 12 - nappeThickPx}
-                              L ${xCrestEnd + 32} ${ySpill + 16 - nappeThickPx}
-                              Q ${xCrestEnd + 15} ${ySpill - nappeThickPx} ${xCrestEnd} ${ySpill - nappeThickPx}
-                              Z
+                        <g className="clean-spillway-flow">
+                          <polygon
+                            points={`
+                              ${xCrestEnd},${ySpill}
+                              ${xToe},${yBase}
+                              ${xToe + 60},${yBase}
+                              ${xToe + 60},${yBase - sheetThick * 0.7}
+                              ${xToe - sheetThick},${yBase - sheetThick}
+                              ${xCrestEnd},${ySpill - sheetThick}
                             `}
-                            fill="url(#eng-cascade-grad)"
+                            fill="url(#clean-cascade)"
                             opacity={0.92}
                           />
-
-                          {/* Aerated White-Water Foam in Stilling Basin (Hydraulic Jump) */}
-                          <g className="hydraulic-jump">
-                            <ellipse
-                              cx={downToeX + 35}
-                              cy={yBase - 6}
-                              rx={28}
-                              ry={8}
-                              fill="#ffffff"
-                              opacity={0.9}
-                            />
-                            <text
-                              x={xCrestEnd + 65}
-                              y={ySpill + 35}
-                              fontSize="9.5"
-                              fontFamily="var(--font-ibm-plex-mono), monospace"
-                              fontWeight="bold"
-                              fill="#0369a1"
-                              stroke="var(--paper)"
-                              strokeWidth={2}
-                              paintOrder="stroke fill"
-                            >
-                              🌊 q_savak: {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s
-                            </text>
-                          </g>
+                          <text
+                            x={xCrestEnd + 45}
+                            y={ySpill + 25}
+                            fontSize="10"
+                            fontFamily="var(--font-ibm-plex-mono), monospace"
+                            fontWeight="bold"
+                            fill="#0369a1"
+                          >
+                            🌊 q_savak: {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s
+                          </text>
                         </g>
                       );
                     })()}
 
-                    {/* 6. Emergency Crest Overtopping (When h > H_max) */}
+                    {/* 5. Emergency Crest Overtopping (when h > H_max) */}
                     {isCurrentlyOvertopping && (
-                      <g className="emergency-crest-overtop">
-                        {/* Overtopping sheet overflowing crest */}
+                      <g className="clean-overtop">
                         <rect
                           x={xUp - 4}
                           y={yWater}
-                          width={xCrestEnd - xUp + 12}
-                          height={yCrest - yWater + 4}
+                          width={xCrestEnd - xUp + 8}
+                          height={yCrest - yWater}
                           fill="#ef4444"
                           opacity={0.7}
                         />
-                        <rect
-                          x="230"
-                          y="22"
-                          width="290"
-                          height="26"
-                          rx="4"
-                          fill="#dc2626"
-                          className="animate-pulse"
-                        />
+                        <rect x="200" y="10" width="220" height="22" rx="4" fill="#dc2626" />
                         <text
-                          x="375"
-                          y="39"
+                          x="310"
+                          y="25"
                           textAnchor="middle"
-                          fontSize="10.5"
+                          fontSize="10"
                           fontFamily="var(--font-ibm-plex-mono), monospace"
                           fontWeight="bold"
                           fill="#ffffff"
                         >
-                          ⚠️ {lang === "tr" ? "TEHLİKE: BARAJ KRET AŞIMI! (q_kret = " : "EMERGENCY: CREST OVERTOPPING! (q_crest = "}
-                          {currentFlowBreakdown.qOvertopping.toFixed(1)} m³/s)
+                          ⚠️ {lang === "tr" ? "KRET AŞIMI" : "CREST OVERTOPPING"} ({currentFlowBreakdown.qOvertopping.toFixed(1)} m³/s)
                         </text>
                       </g>
                     )}
 
-                    {/* 7. Downstream Tailwater Channel Flow */}
-                    <rect
-                      x={basinEndX + 12}
-                      y={yBase - 12}
-                      width="118"
-                      height="12"
-                      fill="#0284c7"
-                      opacity={0.75}
-                    />
-                    <text
-                      x={basinEndX + 70}
-                      y={yBase - 3}
-                      textAnchor="middle"
-                      fontSize="8"
-                      fontFamily="var(--font-ibm-plex-mono), monospace"
-                      fill="#ffffff"
-                      fontWeight="bold"
-                    >
-                      {lang === "tr" ? "Mansap Yatağı →" : "Downstream Channel →"}
-                    </text>
+                    {/* 6. Clean, Dedicated Vertical Elevation Axis on Far Left */}
+                    <g className="clean-elevation-axis" stroke="var(--ink)" strokeWidth={1}>
+                      {/* Vertical Datum Bar */}
+                      <line x1="80" y1={yBase} x2="80" y2={yCrest - 10} stroke="var(--line)" strokeWidth={2} />
 
-                    {/* 8. Professional Civil Engineering Dimension Callouts */}
-                    {/* Vertical Datum Bar on Left (x = 55) */}
-                    <g className="eng-dimensions" stroke="var(--ink)" strokeWidth={1}>
-                      {/* Foundation Level 0.00m */}
-                      <line x1="42" y1={yBase} x2="70" y2={yBase} strokeDasharray="3 2" />
-                      <text x="38" y={yBase + 3} textAnchor="end" fontSize="8" fontFamily="var(--font-ibm-plex-mono), monospace" fill="var(--mut)">
+                      {/* 0.0m Datum */}
+                      <line x1="74" y1={yBase} x2="86" y2={yBase} />
+                      <text x="68" y={yBase + 3} textAnchor="end" fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fill="var(--mut)">
                         0.0m
                       </text>
 
-                      {/* Spillway Level H_spill */}
-                      <line x1="42" y1={ySpill} x2={xCrestEnd} y2={ySpill} stroke="#0284c7" strokeDasharray="3 2" strokeWidth={1} />
-                      <text x="38" y={ySpill + 3} textAnchor="end" fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#0284c7">
+                      {/* H_spill Marker */}
+                      <line x1="74" y1={ySpill} x2="86" y2={ySpill} stroke="#0284c7" strokeWidth={1.5} />
+                      <text x="68" y={ySpill + 3} textAnchor="end" fontSize="9" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#0284c7">
                         H_spill = {dam.hSpill}m
                       </text>
 
-                      {/* Crest Level H_max */}
-                      <line x1="42" y1={yCrest} x2={xUp} y2={yCrest} stroke="var(--ink)" strokeDasharray="3 2" strokeWidth={1} />
-                      <text x="38" y={yCrest + 3} textAnchor="end" fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="var(--ink)">
+                      {/* H_max Dam Crest Marker */}
+                      <line x1="74" y1={yCrest} x2="86" y2={yCrest} stroke="var(--ink)" strokeWidth={1.5} />
+                      <text x="68" y={yCrest + 3} textAnchor="end" fontSize="9" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="var(--ink)">
                         H_max = {dam.hMax}m
                       </text>
-
-                      {/* Dimension Bracket for H_max */}
-                      <line x1="62" y1={yBase} x2="62" y2={yCrest} stroke="var(--ink)" strokeWidth={1.2} />
-                      <line x1="57" y1={yBase} x2="67" y2={yBase} stroke="var(--ink)" strokeWidth={1.2} />
-                      <line x1="57" y1={yCrest} x2="67" y2={yCrest} stroke="var(--ink)" strokeWidth={1.2} />
-
-                      {/* Freeboard Callout Bracket */}
-                      {currentStage < dam.hMax && (
-                        <g className="freeboard-callout">
-                          <line x1={xUp + 18} y1={yWater} x2={xUp + 18} y2={yCrest} stroke="#059669" strokeWidth={1.5} />
-                          <line x1={xUp + 12} y1={yWater} x2={xUp + 24} y2={yWater} stroke="#059669" strokeWidth={1.2} />
-                          <line x1={xUp + 12} y1={yCrest} x2={xUp + 24} y2={yCrest} stroke="#059669" strokeWidth={1.2} />
-                          <text
-                            x={xUp + 28}
-                            y={(yWater + yCrest) / 2 + 3}
-                            fontSize="8"
-                            fontFamily="var(--font-ibm-plex-mono), monospace"
-                            fontWeight="bold"
-                            fill="#059669"
-                          >
-                            Freeboard: {(dam.hMax - currentStage).toFixed(1)}m
-                          </text>
-                        </g>
-                      )}
                     </g>
                   </g>
                 );
@@ -903,40 +651,32 @@ export function DamFloodRoutingPlayground() {
               {/* ── MODE 2: 2D DOWNSTREAM ELEVATION (CREST & SPILLWAY WIDTH) ── */}
               {/* ══════════════════════════════════════════════════════════════ */}
               {damViewMode === "elevation" && (() => {
-                const yBase = 295;
-                const scale = 7.8;
+                const yBase = 250;
+                const scale = 7.0;
                 const hMaxPx = dam.hMax * scale;
                 const hSpillPx = dam.hSpill * scale;
-                const hWaterPx = Math.max(0, currentStage) * scale;
 
                 const yCrest = yBase - hMaxPx;
                 const ySpill = yBase - hSpillPx;
-                const yWater = Math.max(30, yBase - hWaterPx);
 
-                // Valley & Dam width layout:
-                // Total crest width mapped across x = 140 to 620 (480px)
-                const crestLeftX = 140;
-                const crestRightX = 620;
+                const crestLeftX = 160;
+                const crestRightX = 580;
                 const totalWidthPx = crestRightX - crestLeftX;
 
-                // Center spillway notch width
-                const spillFrac = Math.min(0.75, Math.max(0.12, dam.lSpill / dam.lCrest));
+                const spillFrac = Math.min(0.75, Math.max(0.15, dam.lSpill / dam.lCrest));
                 const spillWidthPx = totalWidthPx * spillFrac;
-                const s1X = 380 - spillWidthPx / 2;
-                const s2X = 380 + spillWidthPx / 2;
+                const s1X = 370 - spillWidthPx / 2;
+                const s2X = 370 + spillWidthPx / 2;
 
-                const orifY = yBase - 24;
+                const orifY = yBase - 20;
                 const orifRpx = Math.max(5, Math.min(14, dam.orificeDiameter * 3));
 
                 return (
-                  <g className="dam-2d-elevation">
-                    {/* Valley Natural Rock Abutments */}
-                    <polygon points={`30,${yCrest - 20} ${crestLeftX},${yCrest} ${crestLeftX},${yBase} 30,${yBase}`} fill="url(#eng-rock-grad)" />
-                    <polygon points={`730,${yCrest - 20} ${crestRightX},${yCrest} ${crestRightX},${yBase} 730,${yBase}`} fill="url(#eng-rock-grad)" />
-                    <line x1="30" y1={yBase} x2="730" y2={yBase} stroke={dark ? "#52525b" : "#292524"} strokeWidth={1.5} />
+                  <g className="clean-dam-elevation">
+                    {/* Ground line */}
+                    <line x1="60" y1={yBase} x2="680" y2={yBase} stroke={dark ? "#52525b" : "#94a3b8"} strokeWidth={1.5} />
 
                     {/* Dam Downstream Concrete Face */}
-                    {/* Non-overflow dam wings (Left and Right of spillway) */}
                     <polygon
                       points={`
                         ${crestLeftX},${yBase}
@@ -948,44 +688,22 @@ export function DamFloodRoutingPlayground() {
                         ${crestRightX},${yCrest}
                         ${crestRightX},${yBase}
                       `}
-                      fill="url(#eng-concrete-grad)"
+                      fill="url(#clean-dam)"
                       stroke={dark ? "#64748b" : "#475569"}
-                      strokeWidth={1.8}
+                      strokeWidth={2}
                     />
 
-                    {/* Spillway Central Chute Face */}
+                    {/* Spillway Central Chute */}
                     <polygon
                       points={`${s1X},${ySpill} ${s2X},${ySpill} ${s2X},${yBase} ${s1X},${yBase}`}
-                      fill={dark ? "#1e293b" : "#cbd5e1"}
-                      stroke={dark ? "#334155" : "#94a3b8"}
-                      strokeWidth={1.2}
+                      fill={dark ? "#1e293b" : "#e2e8f0"}
+                      stroke={dark ? "#475569" : "#cbd5e1"}
                     />
-                    {/* Spillway Left & Right Vertical Training Walls */}
-                    <line x1={s1X} y1={yCrest} x2={s1X} y2={yBase} stroke={dark ? "#0f172a" : "#334155"} strokeWidth={2.5} />
-                    <line x1={s2X} y1={yCrest} x2={s2X} y2={yBase} stroke={dark ? "#0f172a" : "#334155"} strokeWidth={2.5} />
 
-                    {/* Concrete Lift Horizontal Seams */}
-                    {[1, 2, 3, 4].map((idx) => {
-                      const yJoint = yBase - idx * 30;
-                      if (yJoint <= yCrest + 10) return null;
-                      return (
-                        <line
-                          key={idx}
-                          x1={crestLeftX}
-                          y1={yJoint}
-                          x2={crestRightX}
-                          y2={yJoint}
-                          stroke={dark ? "#334155" : "#cbd5e1"}
-                          strokeWidth={0.8}
-                          strokeDasharray="8 4"
-                        />
-                      );
-                    })}
-
-                    {/* Bottom Orifice Outlet Conduit (Centered at Base) */}
-                    <circle cx="380" cy={orifY} r={orifRpx} fill="#020617" stroke="#38bdf8" strokeWidth={2} />
+                    {/* Centered Bottom Outlet Orifice */}
+                    <circle cx="370" cy={orifY} r={orifRpx} fill="#020617" stroke="#38bdf8" strokeWidth={2} />
                     <text
-                      x="380"
+                      x="370"
                       y={orifY - orifRpx - 4}
                       textAnchor="middle"
                       fontSize="8.5"
@@ -996,43 +714,24 @@ export function DamFloodRoutingPlayground() {
                       d = {dam.orificeDiameter}m
                     </text>
 
-                    {/* Orifice Discharge Jet Flowing Forward */}
-                    {currentFlowBreakdown.qOrifice > 0.05 && (
-                      <g className="elevation-orifice-jet">
-                        <ellipse cx="380" cy={yBase} rx={orifRpx * 2.2} ry={5} fill="#38bdf8" opacity={0.85} />
-                        <text
-                          x="380"
-                          y={yBase + 16}
-                          textAnchor="middle"
-                          fontSize="9"
-                          fontFamily="var(--font-ibm-plex-mono), monospace"
-                          fontWeight="bold"
-                          fill="#0284c7"
-                        >
-                          q_dip: {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s
-                        </text>
-                      </g>
-                    )}
-
-                    {/* Water Overflowing through Spillway Notch */}
+                    {/* Spillway Overflow Down Chute */}
                     {isCurrentlySpilling && (
-                      <g className="elevation-spill-flow">
+                      <g className="clean-elevation-spill">
                         <polygon
                           points={`${s1X + 2},${ySpill} ${s2X - 2},${ySpill} ${s2X - 2},${yBase} ${s1X + 2},${yBase}`}
-                          fill="url(#eng-cascade-grad)"
+                          fill="url(#clean-cascade)"
                           opacity={0.88}
                         />
-                        <ellipse cx="380" cy={yBase} rx={spillWidthPx / 2 + 8} ry={7} fill="#ffffff" opacity={0.8} />
                         <text
-                          x="380"
+                          x="370"
                           y={(ySpill + yBase) / 2}
                           textAnchor="middle"
-                          fontSize="10.5"
+                          fontSize="10"
                           fontFamily="var(--font-ibm-plex-mono), monospace"
                           fontWeight="bold"
                           fill="#0284c7"
                           stroke="var(--paper)"
-                          strokeWidth={2.5}
+                          strokeWidth={2}
                           paintOrder="stroke fill"
                         >
                           🌊 q_savak = {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s
@@ -1040,29 +739,14 @@ export function DamFloodRoutingPlayground() {
                       </g>
                     )}
 
-                    {/* Overtopping Entire Crest */}
-                    {isCurrentlyOvertopping && (
-                      <g className="elevation-overtopping">
-                        <rect
-                          x={crestLeftX}
-                          y={yCrest}
-                          width={totalWidthPx}
-                          height="20"
-                          fill="#ef4444"
-                          opacity={0.65}
-                        />
-                      </g>
-                    )}
-
-                    {/* Dimensions for Front Elevation */}
-                    {/* L_crest dimension across top */}
-                    <g className="dim-lcrest" stroke="var(--ink)" strokeWidth={1}>
-                      <line x1={crestLeftX} y1={yCrest - 20} x2={crestRightX} y2={yCrest - 20} strokeDasharray="3 2" />
-                      <line x1={crestLeftX} y1={yCrest - 26} x2={crestLeftX} y2={yCrest - 14} />
-                      <line x1={crestRightX} y1={yCrest - 26} x2={crestRightX} y2={yCrest - 14} />
+                    {/* Clean Top Dimensions: L_crest */}
+                    <g className="clean-dim-lcrest" stroke="var(--ink)" strokeWidth={1}>
+                      <line x1={crestLeftX} y1={yCrest - 16} x2={crestRightX} y2={yCrest - 16} strokeDasharray="3 2" />
+                      <line x1={crestLeftX} y1={yCrest - 20} x2={crestLeftX} y2={yCrest - 12} />
+                      <line x1={crestRightX} y1={yCrest - 20} x2={crestRightX} y2={yCrest - 12} />
                       <text
-                        x="380"
-                        y={yCrest - 24}
+                        x="370"
+                        y={yCrest - 20}
                         textAnchor="middle"
                         fontSize="9.5"
                         fontFamily="var(--font-ibm-plex-mono), monospace"
@@ -1073,14 +757,14 @@ export function DamFloodRoutingPlayground() {
                       </text>
                     </g>
 
-                    {/* L_spill dimension across spillway notch */}
-                    <g className="dim-lspill" stroke="#0284c7" strokeWidth={1}>
+                    {/* Spillway Width: L_spill */}
+                    <g className="clean-dim-lspill" stroke="#0284c7" strokeWidth={1}>
                       <line x1={s1X} y1={ySpill - 8} x2={s2X} y2={ySpill - 8} strokeDasharray="2 2" />
-                      <line x1={s1X} y1={ySpill - 13} x2={s1X} y2={ySpill - 3} />
-                      <line x1={s2X} y1={ySpill - 13} x2={s2X} y2={ySpill - 3} />
+                      <line x1={s1X} y1={ySpill - 12} x2={s1X} y2={ySpill - 4} />
+                      <line x1={s2X} y1={ySpill - 12} x2={s2X} y2={ySpill - 4} />
                       <text
-                        x="380"
-                        y={ySpill - 12}
+                        x="370"
+                        y={ySpill - 11}
                         textAnchor="middle"
                         fontSize="9"
                         fontFamily="var(--font-ibm-plex-mono), monospace"
@@ -1091,31 +775,12 @@ export function DamFloodRoutingPlayground() {
                       </text>
                     </g>
 
-                    {/* Vertical Heights H_max & H_spill on Right */}
-                    <g className="dim-heights" stroke="var(--ink)" strokeWidth={1}>
-                      <line x1={crestRightX + 24} y1={yBase} x2={crestRightX + 24} y2={yCrest} />
-                      <line x1={crestRightX + 18} y1={yBase} x2={crestRightX + 30} y2={yBase} />
-                      <line x1={crestRightX + 18} y1={yCrest} x2={crestRightX + 30} y2={yCrest} />
-                      <line x1={crestRightX + 18} y1={ySpill} x2={crestRightX + 30} y2={ySpill} stroke="#0284c7" />
-
-                      <text
-                        x={crestRightX + 36}
-                        y={yCrest + 3}
-                        fontSize="8.5"
-                        fontFamily="var(--font-ibm-plex-mono), monospace"
-                        fontWeight="bold"
-                        fill="var(--ink)"
-                      >
+                    {/* Height Marks on Right */}
+                    <g className="clean-dim-heights" stroke="var(--ink)" strokeWidth={1}>
+                      <text x={crestRightX + 16} y={yCrest + 3} fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="var(--ink)">
                         H_max: {dam.hMax}m
                       </text>
-                      <text
-                        x={crestRightX + 36}
-                        y={ySpill + 3}
-                        fontSize="8.5"
-                        fontFamily="var(--font-ibm-plex-mono), monospace"
-                        fontWeight="bold"
-                        fill="#0284c7"
-                      >
+                      <text x={crestRightX + 16} y={ySpill + 3} fontSize="8.5" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#0284c7">
                         H_spill: {dam.hSpill}m
                       </text>
                     </g>
