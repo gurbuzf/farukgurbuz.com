@@ -13,7 +13,7 @@ export function HeroMap() {
   return (
     <div
       data-screen-label="Home — Hero Section"
-      className="relative overflow-hidden w-full flex-1 flex flex-col justify-between sm:justify-center px-4 sm:px-10 lg:px-14 py-4 sm:py-8 min-[1100px]:py-0 min-h-[calc(100dvh-110px)] min-[1100px]:min-h-0"
+      className="relative overflow-hidden w-full flex-1 flex flex-col justify-center px-4 sm:px-8 lg:px-12 py-2 min-[1100px]:py-0 h-full"
     >
       {/* ── Dynamic ambient glowing aura (Uber/Apple style breathing atmosphere) ── */}
       <div
@@ -60,7 +60,7 @@ export function HeroMap() {
       />
 
       {/* ── Main Hero Content ── */}
-      <div className="relative z-10 w-full max-w-[1160px] mx-auto flex-1 flex flex-col min-[1100px]:flex-row items-start min-[1100px]:items-center justify-between gap-6 sm:gap-8 min-[1100px]:gap-16 py-2 sm:py-6 min-[1100px]:py-10">
+      <div className="relative z-10 w-full max-w-[1140px] mx-auto flex-1 flex flex-col min-[1100px]:flex-row items-center justify-between gap-6 min-[1100px]:gap-10 py-2 min-[1100px]:py-2">
         {/* ── A. MOBILE & TABLET BESPOKE LAYOUT (< 1100px) ── */}
         <div className="flex min-[1100px]:hidden flex-col flex-1 justify-between w-full py-2 gap-4 sm:gap-6">
           {/* 1. Geodetic Hero Identity Crown */}
@@ -272,52 +272,67 @@ export function HeroMap() {
           </div>
         </div>
 
-        {/* ── B. DESKTOP TWO-COLUMN LAYOUT (>= 1100px) ── */}
-        <div className="hidden min-[1100px]:flex flex-col max-w-[640px]">
+        {/* ── B. DESKTOP TWO-COLUMN LAYOUT (>= 1100px) — Compact Single-Viewport Framing ── */}
+        <div className="hidden min-[1100px]:flex flex-col max-w-[620px]">
           {/* Eyebrow badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[var(--atlas-card)] border border-[var(--frame)] rounded-full w-fit shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-[var(--acc)] animate-pulse" />
-            <span className="font-plex-mono font-bold text-[11px] tracking-[0.18em] text-[var(--acc)] uppercase">
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-[var(--atlas-card)] border border-[var(--frame)] rounded-full w-fit shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--acc)] animate-pulse" />
+            <span className="font-plex-mono font-bold text-[10px] tracking-[0.18em] text-[var(--acc)] uppercase">
               {t(copy.home.heroEyebrow, lang)}
             </span>
           </div>
 
           {/* Large Hero Name */}
-          <h1 className="mt-4 font-display font-bold text-[72px] lg:text-[84px] leading-[0.96] tracking-[-0.035em] text-[var(--ink)]">
-            Faruk
-            <br />
-            Gürbüz
+          <h1 className="mt-2 font-display font-bold text-[48px] lg:text-[56px] xl:text-[64px] leading-[0.98] tracking-[-0.035em] text-[var(--ink)]">
+            Faruk Gürbüz
           </h1>
 
           {/* Core Professional Disciplines (Clean Pill Badges) */}
           <div
-            className="flex items-center gap-2.5 mt-4 text-[12px] font-plex-mono select-none flex-wrap"
+            className="flex items-center gap-2 mt-2 text-[11px] font-plex-mono select-none flex-wrap"
             aria-label="Core disciplines"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-700 dark:text-sky-300 font-semibold tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-700 dark:text-sky-300 font-semibold tracking-wide">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
               <span>{lang === "tr" ? "Su Kaynakları Mühendisi" : "Water Resources Engineer"}</span>
             </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-semibold tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-semibold tracking-wide">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>{lang === "tr" ? "Mekansal Veri Bilimci" : "Geospatial Data Scientist"}</span>
             </div>
           </div>
 
           {/* Introduction narrative */}
-          <p className="mt-5 font-display text-[17px] lg:text-[18px] leading-[1.65] text-[var(--ink2)]">
+          <p className="mt-2.5 font-display text-[14px] lg:text-[15px] leading-[1.55] text-[var(--ink2)] max-w-[560px]">
             {t(copy.home.heroDesc, lang)}
           </p>
 
-          {/* Featured Hydrology Lab Instrument Card (Desktop Edition) */}
-          <div className="mt-6 flex flex-col gap-4">
+          {/* Primary Exploration Actions (CV & Publications) */}
+          <div className="mt-3 flex items-center gap-3">
+            <Link
+              href="/cv"
+              className="group cursor-pointer inline-flex items-center gap-2 px-4.5 py-2 bg-[var(--frame)] text-[var(--paper)] font-display font-semibold text-[12.5px] tracking-wide hover:bg-[var(--acc)] shadow-xs transition-all duration-200 rounded-xs"
+            >
+              <span>{t(copy.home.viewCv, lang)}</span>
+              <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <Link
+              href="/publications"
+              className="cursor-pointer px-4.5 py-2 border-[1.5px] border-[var(--frame)] text-[var(--ink)] font-display font-medium text-[12.5px] tracking-wide hover:border-[var(--acc)] hover:text-[var(--acc)] bg-[var(--atlas-card)] shadow-xs transition-all duration-200 rounded-xs"
+            >
+              {t(copy.home.viewPubs, lang)}
+            </Link>
+          </div>
+
+          {/* Featured Hydrology Lab Instrument Card (Desktop Edition) — Positioned below buttons with dedicated breathing room */}
+          <div className="mt-4 sm:mt-4.5 flex flex-col">
             <Link
               href="/lab"
-              className="group relative overflow-hidden rounded-xl border border-sky-500/40 bg-gradient-to-br from-[#0c1628] via-[#0f203c] to-[#0a1424] text-white p-5 shadow-[0_12px_32px_-8px_rgba(2,132,199,0.35)] hover:shadow-[0_16px_40px_-6px_rgba(2,132,199,0.45)] hover:border-sky-400/60 transition-all duration-300 active:scale-[0.99]"
+              className="group relative overflow-hidden rounded-xl border border-sky-500/40 bg-gradient-to-br from-[#0c1628] via-[#0f203c] to-[#0a1424] text-white p-3.5 sm:p-4 shadow-[0_8px_24px_-6px_rgba(2,132,199,0.35)] hover:shadow-[0_12px_28px_-4px_rgba(2,132,199,0.45)] hover:border-sky-400/60 transition-all duration-300 active:scale-[0.99]"
             >
               {/* Ambient glowing aura */}
-              <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 rounded-full bg-sky-500/15 blur-2xl pointer-events-none group-hover:bg-sky-500/25 transition-all" />
-              <div className="absolute bottom-0 left-0 -ml-12 -mb-12 w-44 h-44 rounded-full bg-emerald-500/15 blur-2xl pointer-events-none group-hover:bg-emerald-500/25 transition-all" />
+              <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 rounded-full bg-sky-500/15 blur-2xl pointer-events-none group-hover:bg-sky-500/25 transition-all" />
+              <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-36 h-36 rounded-full bg-emerald-500/15 blur-2xl pointer-events-none group-hover:bg-emerald-500/25 transition-all" />
 
               {/* Card Top Header */}
               <div className="relative z-10 flex items-center justify-between">
@@ -326,73 +341,56 @@ export function HeroMap() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500" />
                   </span>
-                  <span className="font-plex-mono font-bold text-[10.5px] tracking-[0.16em] text-sky-400 uppercase">
-                    {lang === "tr" ? "İNTERAKTİF CBS // DENEY 01" : "INTERACTIVE GIS // EXP 01"}
+                  <span className="font-plex-mono font-bold text-[10px] tracking-[0.16em] text-sky-400 uppercase">
+                    {lang === "tr" ? "İNTERAKTİF CBS // HİDROLOJİ ATÖLYESİ" : "INTERACTIVE GIS // HYDROLOGY LAB"}
                   </span>
                 </div>
-                <span className="font-plex-mono text-[10px] px-2.5 py-0.5 rounded-full bg-white/10 text-sky-200 border border-white/15">
-                  D8 DEM ENGINE
+                <span className="font-plex-mono text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-sky-200 border border-white/15">
+                  EXP 01 & 02
                 </span>
               </div>
 
               {/* Center Flow Graphic & Title */}
-              <div className="relative z-10 my-3">
+              <div className="relative z-10 my-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-display font-bold text-[20px] tracking-tight text-white group-hover:text-sky-300 transition-colors">
-                      {lang === "tr" ? "Havza Sınırlandırma & Akış Yönlendirme" : "Watershed Delineation & Flow Routing"}
+                    <h2 className="font-display font-bold text-[17px] lg:text-[18px] tracking-tight text-white group-hover:text-sky-300 transition-colors">
+                      {lang === "tr" ? "Havza Sınırlandırma & Baraj Hidroliği" : "Watershed Delineation & Dam Hydraulics"}
                     </h2>
-                    <p className="font-display text-[13px] text-slate-300 mt-0.5">
+                    <p className="font-display text-[12px] text-slate-300 mt-0.5">
                       {lang === "tr"
-                        ? "Anlık hidrograf & deterministik D8 akış birikimi simülasyonu"
-                        : "Real-time hydrograph & deterministic D8 flow accumulation simulation"}
+                        ? "D8 akış yönlendirmesi & 4. mertebe Runge-Kutta taşkın ötelemesi"
+                        : "Deterministic D8 flow routing & RK4 reservoir flood routing"}
                     </p>
                   </div>
-                  <div className="w-11 h-11 rounded-full bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-300 group-hover:bg-sky-400 group-hover:text-black group-hover:scale-110 transition-all flex-none ml-4 shadow-sm">
-                    <ArrowRight size={20} />
+                  <div className="w-9 h-9 rounded-full bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-300 group-hover:bg-sky-400 group-hover:text-black group-hover:scale-110 transition-all flex-none ml-3 shadow-sm">
+                    <ArrowRight size={17} />
                   </div>
                 </div>
 
                 {/* Technical Indicator Sub-bar */}
-                <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between font-plex-mono text-[10.5px] text-slate-400">
-                  <span>{lang === "tr" ? "Izgara: 1 km DEM" : "Grid: 1 km DEM"}</span>
+                <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between font-plex-mono text-[9.5px] text-slate-400">
+                  <span>{lang === "tr" ? "İki Ayrı Deney" : "2 Live Experiments"}</span>
                   <span className="text-emerald-400 flex items-center gap-1.5 font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     {lang === "tr" ? "Etkileşimli Simülasyon" : "Interactive Simulation"}
                   </span>
                   <span className="text-sky-300 font-semibold group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
-                    {lang === "tr" ? "Laboratuvarı Başlat ⚡" : "Launch Lab ⚡"}
+                    {lang === "tr" ? "Laboratuvarı Aç ⚡" : "Launch Lab ⚡"}
                   </span>
                 </div>
               </div>
             </Link>
-
-            {/* Secondary Actions: CV & Publications */}
-            <div className="flex items-center gap-3">
-              <Link
-                href="/cv"
-                className="group cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--frame)] text-[var(--paper)] font-display font-semibold text-[13px] tracking-wide hover:bg-[var(--acc)] shadow-xs transition-all duration-200 rounded-xs"
-              >
-                <span>{t(copy.home.viewCv, lang)}</span>
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="/publications"
-                className="cursor-pointer px-5 py-2.5 border-[1.5px] border-[var(--frame)] text-[var(--ink)] font-display font-medium text-[13px] tracking-wide hover:border-[var(--acc)] hover:text-[var(--acc)] bg-[var(--atlas-card)] shadow-xs transition-all duration-200 rounded-xs"
-              >
-                {t(copy.home.viewPubs, lang)}
-              </Link>
-            </div>
           </div>
 
           {/* Prominent High-Visibility Profile Logos */}
-          <div className="mt-6 pt-4 border-t border-[var(--line)]">
+          <div className="mt-3 pt-2.5 border-t border-[var(--line)]">
             <SocialLinks variant="hero" includeEmail={false} />
           </div>
         </div>
 
         {/* Desktop Right Column: Faruk's Dynamic Portrait Card */}
-        <div className="hidden min-[1100px]:block flex-none self-center min-[1100px]:self-auto">
+        <div className="hidden min-[1100px]:block flex-none self-center">
           <FeaturePhoto lang={lang} />
         </div>
       </div>

@@ -45,25 +45,37 @@ export default function PublicationsPage() {
                       href={
                         entry.doi
                           ? `https://doi.org/${entry.doi}`
-                          : "https://scholar.google.com/citations?user=CVfKPpUAAAAJ&hl=tr"
+                          : entry.url || "https://scholar.google.com/citations?user=CVfKPpUAAAAJ&hl=tr"
                       }
                       target="_blank"
                       rel="noopener"
-                      className="text-[var(--ink)] no-underline"
+                      className="text-[var(--ink)] no-underline hover:text-[var(--acc)] transition-colors inline"
                     >
-                      {entry.title}
+                      {t(entry.title, lang)}
                     </a>
+                    {entry.langNote && (
+                      <span className="ml-2.5 inline-block align-middle font-plex-mono text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--line)]/50 text-[var(--ink2)] border border-[var(--line)]">
+                        {t(entry.langNote, lang)}
+                      </span>
+                    )}
                   </div>
                   <div className="mt-1.5 font-plex-mono text-[12.5px] text-[var(--mut)]">
-                    {entry.authors.map((author, ai) => (
-                      <span key={ai}>
-                        {ai > 0 && ", "}
-                        <span style={author === entry.highlightAuthor ? { color: "var(--acc)" } : undefined}>
-                          {author}
+                    {entry.authors.map((author, ai) => {
+                      const isHighlighted =
+                        author === entry.highlightAuthor ||
+                        author.replace("ü", "u") === entry.highlightAuthor.replace("ü", "u") ||
+                        author === "Gurbuz" ||
+                        author === "Gürbüz";
+                      return (
+                        <span key={ai}>
+                          {ai > 0 && ", "}
+                          <span style={isHighlighted ? { color: "var(--acc)", fontWeight: 600 } : undefined}>
+                            {author}
+                          </span>
                         </span>
-                      </span>
-                    ))}{" "}
-                    · {entry.year} · {entry.venue}
+                      );
+                    })}{" "}
+                    · {entry.year} · {t(entry.venue, lang)}
                   </div>
                 </div>
               </div>

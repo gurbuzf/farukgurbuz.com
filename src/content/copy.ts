@@ -48,6 +48,49 @@ export const copy = {
       en: "A client-side digital elevation model (DEM) demonstrating deterministic 8-neighbor (D8) steepest descent routing and flow accumulation. Select an analysis layer, click any cell to set a pour point, and watch the watershed delineate in real time.",
       tr: "Deterministik 8 komşu (D8) en dik eğim yönlendirmesi ve akış birikimini modelleyen interaktif sayısal yükseklik modeli (DEM). Bir analiz katmanı seçin, akış çıkış noktası belirlemek için herhangi bir hücreye tıklayın ve havzanın anlık olarak sınırlandırılmasını izleyin.",
     },
+    labTab01: { en: "LAB 01 · WATERSHED DELINEATION", tr: "LAB 01 · HAVZA SINIRLANDIRMA & DRENAJ" },
+    labTab02: { en: "LAB 02 · DAM FLOOD ROUTING", tr: "LAB 02 · BARAJ TAŞKIN ÖTELEMESİ" },
+  },
+  damLab: {
+    eyebrow: { en: "INTERACTIVE GIS LAB // 02", tr: "İNTERAKTİF CBS ATÖLYESİ // 02" },
+    title: {
+      en: "Dam Hydraulics & Reservoir Flood Routing",
+      tr: "Baraj Hidroliği & Rezervuar Taşkın Ötelemesi (Level-Pool Routing)",
+    },
+    desc: {
+      en: "Interactive reservoir flood routing engine solving mass conservation continuity and multi-regime orifice & weir hydraulics in real time.",
+      tr: "Kütle korunum denklemleri ve parçalı dip savak & dolu savak hidroliği ile çalışan etkileşimli rezervuar taşkın ötelemesi simülatörü.",
+    },
+    tabs: {
+      illustration: { en: "Dam Cross-Section & Profile", tr: "Baraj En Kesiti & Geometrisi" },
+      hydrograph: { en: "Inflow-Outflow Hydrograph", tr: "Giriş-Çıkış Taşkın Hidrografı" },
+      parameters: { en: "Hydraulic Controls", tr: "Hidrolik Parametreler" },
+      fieldNotes: { en: "Governing Equations & Formulation", tr: "Temel Denklemler & Hidrolik Formülasyon" },
+    },
+    shapes: {
+      gamma: { en: "Synthetic Gamma Unit Hydrograph", tr: "Sentetik Gama Birim Hidrografı" },
+      triangular: { en: "Triangular Hydrograph", tr: "Üçgen Taşkın Hidrografı" },
+      trapezoid: { en: "Trapezoidal Sustained Storm", tr: "Trapez / Uzun Süreli Sağanak" },
+    },
+    metrics: {
+      peakInflow: { en: "Peak Inflow", tr: "Giriş Piki" },
+      peakOutflow: { en: "Peak Outflow", tr: "Çıkış Piki" },
+      attenuation: { en: "Peak Attenuation", tr: "Pik Sönümleme" },
+      lagTime: { en: "Lag Time", tr: "Öteleme Gecikmesi" },
+      maxStage: { en: "Peak Water Level", tr: "En Yüksek Su Kotu" },
+      freeboard: { en: "Safety Freeboard", tr: "Hava Payı (Freeboard)" },
+      overtopping: { en: "Dam Overtopping", tr: "Kret Aşımı" },
+    },
+    controls: {
+      presetsHeading: { en: "PRESET SCENARIOS:", tr: "HAZIR SENARYOLAR:" },
+      damSection: { en: "DAM STRUCTURE & ORIFICE", tr: "BARAJ GÖVDESİ & DİP SAVAK" },
+      reservoirSection: { en: "RESERVOIR CAPACITY & POOL", tr: "REZERVUAR ALANI & DEPOLAMA" },
+      floodSection: { en: "INFLOW FLOOD HYDROGRAPH", tr: "GELEN TAŞKIN HİDROGRAFI" },
+      playAnimation: { en: "Play Flood Routing", tr: "Taşkın Simülasyonunu Oynat" },
+      pauseAnimation: { en: "Pause", tr: "Duraklat" },
+      resetAnimation: { en: "Reset to t = 0", tr: "Başa Sar (t = 0)" },
+      timeScrubber: { en: "Time Simulation Progress:", tr: "Zaman İlerlemesi:" },
+    },
   },
   playground: {
     demButton: { en: "DEM", tr: "DEM" },
@@ -91,17 +134,23 @@ export const copy = {
       en: "Dark blue channels emerge naturally where surface water converges. Separate river systems drain toward distinct edge outlets across the two neighboring catchments.",
       tr: "Yüzey suyunun toplandığı yerlerde koyu mavi akarsu yatakları belirir. İki komşu havzada ayrı akarsu kolları kendi sınır çıkışlarına doğru akar.",
     },
-    mapKeyTitle: { en: "Map Features & Delineation", tr: "Harita İşaretleri & Sınırlandırma" },
-    pourPoint: { en: "Selected Pour Point (Edge)", tr: "Seçilen Çıkış Noktası (Sınırda)" },
-    pourPointDesc: { en: "Outlet where runoff is collected and gauged", tr: "Akışın toplandığı çıkış noktası" },
-    flowPath: { en: "Downstream Flow Path", tr: "Akış Aşağı Güzergahı" },
-    flowPathDesc: { en: "Simulated route of water to edge", tr: "Suyun sınıra ulaşma rotası" },
-    basin: { en: "Delineated Catchment Basin", tr: "Sınırlandırılan Su Havzası" },
-    basinDesc: { en: "All upstream cells draining here", tr: "Buraya su akıtan tüm üst havza alanı" },
-    waterSurface: { en: "Water Surface Pixels (Sea / Bay, 0 m)", tr: "Su Yüzeyi Hücreleri (Deniz / Körfez, 0 m)" },
-    waterSurfaceDesc: { en: "Receiving coastal water bodies at 0 m", tr: "0 m deniz kotundaki alıcı su kütleleri" },
-    divideLineLabel: { en: "Drainage Divide Line", tr: "Su Ayrım Çizgisi (Drainage Divide)" },
-    divideLineDesc: { en: "Ridge boundary dividing runoff between catchments", tr: "İki havza arasındaki su ayrım sınırı (Drainage divide ridge)" },
+    mapKeyTitle: { en: "Map Features & Symbology", tr: "Harita İşaretleri & Semboloji (Lejant)" },
+    pourPoint: { en: "Selected Pour Point", tr: "Seçilen Çıkış / Analiz Noktası (Pour Point)" },
+    pourPointDesc: { en: "Target cell where upstream runoff is collected & gauged", tr: "Tıklanan hedef hücre; akış burada toplanır ve hidrografı üretilir" },
+    flowPath: { en: "Downstream Streamline", tr: "Mansap Akış Çizgisi (Streamline)" },
+    flowPathDesc: { en: "Simulated route of runoff to final basin outlet", tr: "Suyun en dik eğimle mansaptaki ana çıkışa ulaştığı kesikli mavi hat" },
+    basin: { en: "Upstream Catchment Basin", tr: "Drenaj Havzası & Sınırı (Catchment)" },
+    basinDesc: { en: "Upstream contributing area with perimeter boundary line", tr: "Mavi konturla çevrili, seçilen noktaya su akıtan tüm alan" },
+    edgeOutlet: { en: "Terminal Basin Outlet", tr: "Havza Ana Çıkışı (Terminal Outlet)" },
+    edgeOutletDesc: { en: "Main downstream discharge exit point at map edge", tr: "Tüm havzanın harita sınırındaki ana drenaj çıkışı" },
+    waterSurface: { en: "Water Surface (Sea / Bay, 0 m)", tr: "Su Yüzeyi (Deniz / Körfez, 0 m)" },
+    waterSurfaceDesc: { en: "Receiving coastal water bodies at 0 m elevation", tr: "0 m kotundaki alıcı su kütleleri (≈ sembollü hücreler)" },
+    divideLineLabel: { en: "Drainage Divide Ridge", tr: "Su Ayrım Çizgisi (Drainage Divide)" },
+    divideLineDesc: { en: "Amber dashed ridge line separating neighboring catchments", tr: "İki komşu havzanın sularını ayıran sarı/turuncu sırt çizgisi" },
+    basinA: { en: "West Basin (Basin A)", tr: "Batı Havzası (A Havzası)" },
+    basinADesc: { en: "Catchment draining to west outlet", tr: "Batı çıkışına boşalan açık mavi havza alanı" },
+    basinB: { en: "East Basin (Basin B)", tr: "Doğu Havzası (B Havzası)" },
+    basinBDesc: { en: "Catchment draining to east outlet", tr: "Doğu çıkışına boşalan nane yeşili havza alanı" },
     hydraulicFormula: { en: "Rational Method: Q = (C · I · A) / 3.6", tr: "Rasyonel Yöntem: Q = (C · I · A) / 3.6" },
     hydraulicAssumptions: {
       en: "Assumptions: Runoff coeff C = 0.45, Design storm intensity I = 35 mm/hr, 1 cell = 1.0 km². Q = 4.375 · A m³/s. Concentration time Tc = max(8, L · 4) min.",
@@ -150,6 +199,8 @@ export const copy = {
   },
 };
 
-export function t<K extends { en: string; tr: string }>(field: K, lang: Lang): string {
-  return field[lang];
+export function t(field: string | { en: string; tr: string } | undefined, lang: Lang): string {
+  if (!field) return "";
+  if (typeof field === "string") return field;
+  return field[lang] ?? field.en;
 }

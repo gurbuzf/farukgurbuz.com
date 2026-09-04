@@ -1878,53 +1878,138 @@ export function WatershedPlayground() {
         </div>
 
         {/* Right: Permanent Map Symbols Key (Placed right next to DEM on mobile & desktop) */}
-        <div className="w-full md:w-[310px] p-4 bg-[var(--paper)] border border-[var(--line)] rounded-sm flex flex-col gap-2.5 flex-none">
-          <span className="font-plex-mono text-[10px] font-bold tracking-wider text-[var(--ink)] uppercase">
-            {t(p.mapKeyTitle, lang)}
-          </span>
-          <div className="flex items-center gap-2.5">
-            <span className="w-3.5 h-3.5 bg-[var(--field)] border border-[var(--frame)] rounded-xs flex-none" />
-            <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
-              <span className="font-medium">{t(p.pourPoint, lang)}</span>
-              <span className="text-[var(--mut)] block text-[10px]">{t(p.pourPointDesc, lang)}</span>
+        <div className="w-full md:w-[330px] p-4 bg-[var(--paper)] border border-[var(--line)] rounded-sm flex flex-col gap-3 flex-none shadow-2xs">
+          <div className="flex items-center justify-between border-b border-[var(--line)] pb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[var(--acc)]" />
+              <span className="font-plex-mono text-[10px] font-bold tracking-wider text-[var(--ink)] uppercase">
+                {t(p.mapKeyTitle, lang)}
+              </span>
             </div>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span
-              className="w-3.5 h-3.5 border-2 border-dashed border-[var(--acc)] rounded-xs flex-none"
-              style={{ background: "color-mix(in srgb, var(--acc) 25%, transparent)" }}
-            />
-            <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
-              <span className="font-medium">{t(p.flowPath, lang)}</span>
-              <span className="text-[var(--mut)] block text-[10px]">{t(p.flowPathDesc, lang)}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span
-              className="w-3.5 h-3.5 border border-[var(--line)] rounded-xs flex-none"
-              style={{ background: "color-mix(in srgb, var(--acc) 30%, var(--atlas-card))" }}
-            />
-            <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
-              <span className="font-medium">{t(p.basin, lang)}</span>
-              <span className="text-[var(--mut)] block text-[10px]">{t(p.basinDesc, lang)}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span className="w-3.5 h-3.5 bg-[#38bdf8] border border-[var(--line)] rounded-xs flex-none flex items-center justify-center text-[8px] text-[#0c4a6e] font-bold">
-              ≈
+            <span className="font-plex-mono text-[9px] text-[var(--mut)] uppercase font-semibold">
+              {showDivide ? (lang === "tr" ? "Su Ayrımı" : "Divide Mode") : (lang === "tr" ? "Drenaj Ağı" : "Drainage")}
             </span>
-            <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
-              <span className="font-medium">{t(p.waterSurface, lang)}</span>
-              <span className="text-[var(--mut)] block text-[10px]">{t(p.waterSurfaceDesc, lang)}</span>
-            </div>
           </div>
-          <div className="flex items-center gap-2.5">
-            <span className="w-3.5 h-1 border-t-2 border-dashed border-amber-500 flex-none" />
-            <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
-              <span className="font-medium">{t(p.divideLineLabel, lang)}</span>
-              <span className="text-[var(--mut)] block text-[10px]">{t(p.divideLineDesc, lang)}</span>
+
+          {showDivide ? (
+            /* Divide Mode Symbology: Shows Basin A, Basin B, Drainage Divide Ridge, and Water */
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-start gap-2.5">
+                <svg width="22" height="18" viewBox="0 0 22 18" className="flex-none mt-0.5">
+                  <line x1="1" y1="12" x2="21" y2="12" stroke="#d97706" strokeWidth="2.5" strokeDasharray="4 2.5" strokeLinecap="round" />
+                  <polygon points="11,2 15,9 7,9" fill="#f59e0b" stroke="#78350f" strokeWidth="0.8" />
+                </svg>
+                <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
+                  <span className="font-semibold text-amber-700 dark:text-amber-400">{t(p.divideLineLabel, lang)}</span>
+                  <span className="text-[var(--mut)] block text-[10px] mt-0.5">{t(p.divideLineDesc, lang)}</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <svg width="22" height="18" viewBox="0 0 22 18" className="flex-none mt-0.5">
+                  <rect x="2" y="2" width="18" height="14" rx="2" fill="color-mix(in srgb, #38bdf8 25%, var(--atlas-card))" stroke="#0284c7" strokeWidth="1.2" />
+                  <text x="11" y="12.5" textAnchor="middle" fontSize="8.5" fontWeight="bold" fill="#0284c7" fontFamily="var(--font-ibm-plex-mono), monospace">A</text>
+                </svg>
+                <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
+                  <span className="font-semibold text-[#0284c7]">{t(p.basinA, lang)}</span>
+                  <span className="text-[var(--mut)] block text-[10px] mt-0.5">{t(p.basinADesc, lang)}</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <svg width="22" height="18" viewBox="0 0 22 18" className="flex-none mt-0.5">
+                  <rect x="2" y="2" width="18" height="14" rx="2" fill="color-mix(in srgb, #a7f3d0 28%, var(--atlas-card))" stroke="#059669" strokeWidth="1.2" />
+                  <text x="11" y="12.5" textAnchor="middle" fontSize="8.5" fontWeight="bold" fill="#047857" fontFamily="var(--font-ibm-plex-mono), monospace">B</text>
+                </svg>
+                <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
+                  <span className="font-semibold text-emerald-600">{t(p.basinB, lang)}</span>
+                  <span className="text-[var(--mut)] block text-[10px] mt-0.5">{t(p.basinBDesc, lang)}</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <svg width="22" height="18" viewBox="0 0 22 18" className="flex-none mt-0.5">
+                  <rect x="2" y="2" width="18" height="14" rx="2" fill="#38bdf8" stroke="rgba(2,132,199,0.4)" strokeWidth="1" />
+                  <text x="11" y="12.5" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#0369a1" fontFamily="sans-serif">≈</text>
+                </svg>
+                <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
+                  <span className="font-semibold">{t(p.waterSurface, lang)}</span>
+                  <span className="text-[var(--mut)] block text-[10px] mt-0.5">{t(p.waterSurfaceDesc, lang)}</span>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Interactive Delineation & Catchment Mode Symbology */
+            <div className="flex flex-col gap-2.5">
+              {/* Selected Pour Point */}
+              <div className="flex items-start gap-2.5">
+                <svg width="22" height="18" viewBox="0 0 22 18" className="flex-none mt-0.5">
+                  <circle cx="11" cy="9" r="7.5" fill="none" stroke="#0284c7" strokeWidth="1.6" strokeOpacity="0.4" />
+                  <circle cx="11" cy="9" r="4" fill="#0284c7" stroke="#ffffff" strokeWidth="1.5" />
+                </svg>
+                <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
+                  <span className="font-semibold text-[#0284c7]">{t(p.pourPoint, lang)}</span>
+                  <span className="text-[var(--mut)] block text-[10px] mt-0.5">{t(p.pourPointDesc, lang)}</span>
+                </div>
+              </div>
+
+              {/* Catchment Basin & Boundary */}
+              <div className="flex items-start gap-2.5">
+                <svg width="22" height="18" viewBox="0 0 22 18" className="flex-none mt-0.5">
+                  <rect x="2" y="2" width="18" height="14" rx="2" fill="color-mix(in srgb, #0284c7 35%, var(--atlas-card))" stroke="#0284c7" strokeWidth="2.4" />
+                </svg>
+                <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
+                  <span className="font-semibold text-[var(--ink)]">{t(p.basin, lang)}</span>
+                  <span className="text-[var(--mut)] block text-[10px] mt-0.5">{t(p.basinDesc, lang)}</span>
+                </div>
+              </div>
+
+              {/* Downstream Streamline */}
+              <div className="flex items-start gap-2.5">
+                <svg width="22" height="18" viewBox="0 0 22 18" className="flex-none mt-0.5">
+                  <line x1="2" y1="9" x2="16" y2="9" stroke="#0284c7" strokeWidth="2.4" strokeDasharray="3.5 2.5" strokeLinecap="round" />
+                  <circle cx="17.5" cy="9" r="2.8" fill="#0284c7" stroke="#ffffff" strokeWidth="1" />
+                </svg>
+                <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
+                  <span className="font-semibold text-[#0284c7]">{t(p.flowPath, lang)}</span>
+                  <span className="text-[var(--mut)] block text-[10px] mt-0.5">{t(p.flowPathDesc, lang)}</span>
+                </div>
+              </div>
+
+              {/* Terminal Edge Outlet */}
+              <div className="flex items-start gap-2.5">
+                <svg width="22" height="18" viewBox="0 0 22 18" className="flex-none mt-0.5">
+                  <rect x="2" y="2" width="18" height="14" rx="2" fill="var(--paper)" stroke="#0284c7" strokeWidth="1.6" />
+                  <circle cx="11" cy="12" r="2.8" fill="var(--field)" />
+                </svg>
+                <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
+                  <span className="font-semibold">{t(p.edgeOutlet, lang)}</span>
+                  <span className="text-[var(--mut)] block text-[10px] mt-0.5">{t(p.edgeOutletDesc, lang)}</span>
+                </div>
+              </div>
+
+              {/* Water Surface */}
+              <div className="flex items-start gap-2.5">
+                <svg width="22" height="18" viewBox="0 0 22 18" className="flex-none mt-0.5">
+                  <rect x="2" y="2" width="18" height="14" rx="2" fill="#38bdf8" stroke="rgba(2,132,199,0.4)" strokeWidth="1" />
+                  <text x="11" y="12.5" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#0369a1" fontFamily="sans-serif">≈</text>
+                </svg>
+                <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
+                  <span className="font-semibold">{t(p.waterSurface, lang)}</span>
+                  <span className="text-[var(--mut)] block text-[10px] mt-0.5">{t(p.waterSurfaceDesc, lang)}</span>
+                </div>
+              </div>
+
+              {/* Drainage Divide Ridge */}
+              <div className="flex items-start gap-2.5">
+                <svg width="22" height="18" viewBox="0 0 22 18" className="flex-none mt-0.5">
+                  <line x1="1" y1="12" x2="21" y2="12" stroke="#d97706" strokeWidth="2.5" strokeDasharray="4 2.5" strokeLinecap="round" />
+                  <polygon points="11,2 15,9 7,9" fill="#f59e0b" stroke="#78350f" strokeWidth="0.8" />
+                </svg>
+                <div className="font-display text-[11px] text-[var(--ink)] leading-tight">
+                  <span className="font-semibold text-amber-700 dark:text-amber-400">{t(p.divideLineLabel, lang)}</span>
+                  <span className="text-[var(--mut)] block text-[10px] mt-0.5">{t(p.divideLineDesc, lang)}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

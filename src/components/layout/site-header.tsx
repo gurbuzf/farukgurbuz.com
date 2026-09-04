@@ -99,15 +99,15 @@ export function SiteHeader() {
   });
 
   return (
-    <header className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 lg:px-10 py-3 sm:py-0 sm:h-16 border-b-[1.5px] border-[var(--frame)] bg-[var(--paper)]/95 backdrop-blur-md sticky top-0 z-40 flex-none transition-colors">
+    <header className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 lg:px-10 py-3 sm:py-0 sm:h-18 border-b-[1.5px] border-[var(--frame)] bg-[var(--paper)]/95 backdrop-blur-md sticky top-0 z-40 flex-none transition-colors">
       <div className="flex items-center justify-between sm:contents">
-        <Link href="/" className="flex items-center gap-3 cursor-pointer group">
+        <Link href="/" className="flex items-center gap-3.5 cursor-pointer group py-1">
           <img
             src={dark ? "/images/logo-white.png" : "/images/logo-navy.png"}
             alt="Faruk Gürbüz logo"
-            className="h-[34px] sm:h-[28px] w-auto block group-hover:scale-105 transition-transform"
+            className="h-[34px] sm:h-[42px] md:h-[46px] w-auto block group-hover:scale-105 transition-transform drop-shadow-xs"
           />
-          <span className="hidden sm:inline font-plex-mono font-bold text-[13px] tracking-[0.16em] text-[var(--ink)]">
+          <span className="hidden sm:inline font-plex-mono font-bold text-[14px] tracking-[0.16em] text-[var(--ink)]">
             FARUK GÜRBÜZ
           </span>
         </Link>
