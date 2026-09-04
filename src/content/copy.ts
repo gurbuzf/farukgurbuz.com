@@ -58,14 +58,14 @@ export const copy = {
       tr: "Baraj Hidroliği & Rezervuar Taşkın Ötelemesi (Level-Pool Routing)",
     },
     desc: {
-      en: "Interactive reservoir flood routing engine solving continuity mass balance and multi-regime orifice & weir discharge based on Faruk Gürbüz's M.Sc. thesis hydraulic formulation (Figure 2.2).",
-      tr: "Faruk Gürbüz'ün yüksek lisans tezinde yer alan hidrolik formülasyon (Şekil 2.2) ve kütle korunum denklemleriyle çalışan interaktif rezervuar taşkın ötelemesi ve savak hidroliği simülatörü.",
+      en: "Interactive reservoir flood routing engine solving mass conservation continuity and multi-regime orifice & weir hydraulics in real time.",
+      tr: "Kütle korunum denklemleri ve parçalı dip savak & dolu savak hidroliği ile çalışan etkileşimli rezervuar taşkın ötelemesi simülatörü.",
     },
     tabs: {
-      illustration: { en: "3D Dam Model & Geometry", tr: "3B Baraj Modeli & Geometri" },
+      illustration: { en: "Dam Cross-Section & Profile", tr: "Baraj En Kesiti & Geometrisi" },
       hydrograph: { en: "Inflow-Outflow Hydrograph", tr: "Giriş-Çıkış Taşkın Hidrografı" },
       parameters: { en: "Hydraulic Controls", tr: "Hidrolik Parametreler" },
-      fieldNotes: { en: "Thesis Equations & Derivations", tr: "Tez Formülleri & Hesap Adımları" },
+      fieldNotes: { en: "Governing Equations & Formulation", tr: "Temel Denklemler & Hidrolik Formülasyon" },
     },
     shapes: {
       gamma: { en: "Synthetic Gamma Unit Hydrograph", tr: "Sentetik Gama Birim Hidrografı" },
