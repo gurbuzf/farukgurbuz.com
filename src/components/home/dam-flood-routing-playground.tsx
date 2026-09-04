@@ -414,22 +414,34 @@ export function DamFloodRoutingPlayground() {
 
                     {/* Concrete Dam Polygon */}
                     <polygon
-                      points={`
-                        ${xUp},${yBase}
-                        ${xUp},${yCrest}
-                        ${xCrestEnd},${yCrest}
-                        ${xCrestEnd},${ySpill}
-                        ${xToe},${yBase}
-                        ${xUp},${yBase}
-                      `}
+                      points={
+                        dam.lSpill > 0
+                          ? `
+                            ${xUp},${yBase}
+                            ${xUp},${yCrest}
+                            ${xCrestEnd},${yCrest}
+                            ${xCrestEnd},${ySpill}
+                            ${xToe},${yBase}
+                            ${xUp},${yBase}
+                          `
+                          : `
+                            ${xUp},${yBase}
+                            ${xUp},${yCrest}
+                            ${xCrestEnd},${yCrest}
+                            ${xToe},${yBase}
+                            ${xUp},${yBase}
+                          `
+                      }
                       fill="url(#dam-clean-concrete)"
                       stroke={dark ? "#64748b" : "#475569"}
                       strokeWidth={2}
                       strokeLinejoin="round"
                     />
 
-                    {/* Spillway Level Dashed Line */}
-                    <line x1={xUp} y1={ySpill} x2={xCrestEnd} y2={ySpill} stroke="#0284c7" strokeWidth={1.5} strokeDasharray="4 3" />
+                    {/* Spillway Level Dashed Line (Only if spillway exists L > 0) */}
+                    {dam.lSpill > 0 && (
+                      <line x1={xUp} y1={ySpill} x2={xCrestEnd} y2={ySpill} stroke="#0284c7" strokeWidth={1.5} strokeDasharray="4 3" />
+                    )}
 
                     {/* Bottom Orifice Conduit & Pipe */}
                     <rect
@@ -491,8 +503,8 @@ export function DamFloodRoutingPlayground() {
                       );
                     })()}
 
-                    {/* Spillway Cascade Flow */}
-                    {isCurrentlySpilling ? (() => {
+                    {/* Spillway Cascade Flow (Only if spillway weir exists and active) */}
+                    {dam.lSpill > 0 && isCurrentlySpilling ? (() => {
                       const head = currentStage - dam.hSpill;
                       const sheetThick = Math.max(3, Math.min(18, head * scale * 0.5));
 
@@ -525,7 +537,7 @@ export function DamFloodRoutingPlayground() {
                           </text>
                         </g>
                       );
-                    })() : (
+                    })() : dam.lSpill > 0 ? (
                       <text
                         x={xCrestEnd + 30}
                         y={ySpill + 20}
@@ -538,7 +550,7 @@ export function DamFloodRoutingPlayground() {
                       >
                         {lang === "tr" ? "(Savak Kuru)" : "(Spillway Inactive)"}
                       </text>
-                    )}
+                    ) : null}
 
                     {/* Emergency Crest Overtopping */}
                     {isCurrentlyOvertopping && (
@@ -568,22 +580,26 @@ export function DamFloodRoutingPlayground() {
                         0m
                       </text>
 
-                      {/* Spillway Level Indicator */}
-                      <line x1="63" y1={ySpill} x2="xCrestEnd" y2={ySpill} stroke="#0284c7" strokeWidth={1} strokeDasharray="3 2" opacity={0.6} />
-                      <text
-                        x="58"
-                        y={ySpill + 3}
-                        textAnchor="end"
-                        fontSize="10"
-                        fontFamily="var(--font-ibm-plex-mono), monospace"
-                        fontWeight="bold"
-                        fill="#0284c7"
-                        stroke="var(--paper)"
-                        strokeWidth={2}
-                        paintOrder="stroke fill"
-                      >
-                        H_savak = {dam.hSpill}m
-                      </text>
+                      {/* Spillway Level Indicator (Only if spillway weir exists) */}
+                      {dam.lSpill > 0 && (
+                        <>
+                          <line x1="63" y1={ySpill} x2="xCrestEnd" y2={ySpill} stroke="#0284c7" strokeWidth={1} strokeDasharray="3 2" opacity={0.6} />
+                          <text
+                            x="58"
+                            y={ySpill + 3}
+                            textAnchor="end"
+                            fontSize="10"
+                            fontFamily="var(--font-ibm-plex-mono), monospace"
+                            fontWeight="bold"
+                            fill="#0284c7"
+                            stroke="var(--paper)"
+                            strokeWidth={2}
+                            paintOrder="stroke fill"
+                          >
+                            H_savak = {dam.hSpill}m
+                          </text>
+                        </>
+                      )}
 
                       {/* Crest Level Indicator */}
                       <line x1="63" y1={yCrest} x2="xCrestEnd" y2={yCrest} stroke="var(--ink)" strokeWidth={1} strokeDasharray="3 2" opacity={0.6} />
@@ -617,19 +633,34 @@ export function DamFloodRoutingPlayground() {
                     >
                       🏔️ H_kret: {dam.hMax}m
                     </text>
-                    <text
-                      x={xCrestEnd + 8}
-                      y={ySpill - 6}
-                      fontSize="10"
-                      fontFamily="var(--font-ibm-plex-mono), monospace"
-                      fontWeight="bold"
-                      fill="#0284c7"
-                      stroke="var(--paper)"
-                      strokeWidth={2}
-                      paintOrder="stroke fill"
-                    >
-                      🌊 H_savak: {dam.hSpill}m (L={dam.lSpill}m)
-                    </text>
+                    {dam.lSpill > 0 ? (
+                      <text
+                        x={xCrestEnd + 8}
+                        y={ySpill - 6}
+                        fontSize="10"
+                        fontFamily="var(--font-ibm-plex-mono), monospace"
+                        fontWeight="bold"
+                        fill="#0284c7"
+                        stroke="var(--paper)"
+                        strokeWidth={2}
+                        paintOrder="stroke fill"
+                      >
+                        🌊 H_savak: {dam.hSpill}m (L={dam.lSpill}m)
+                      </text>
+                    ) : (
+                      <text
+                        x={xCrestEnd + 8}
+                        y={yCrest + 22}
+                        fontSize="9.5"
+                        fontFamily="var(--font-ibm-plex-mono), monospace"
+                        fill="var(--mut)"
+                        stroke="var(--paper)"
+                        strokeWidth={1.5}
+                        paintOrder="stroke fill"
+                      >
+                        {lang === "tr" ? "(Dolu Savaksız, L=0)" : "(No Spillway, L=0)"}
+                      </text>
+                    )}
                   </g>
                 );
               })()}
@@ -665,27 +696,38 @@ export function DamFloodRoutingPlayground() {
 
                     {/* Dam Downstream Face */}
                     <polygon
-                      points={`
-                        ${crestLeftX},${yBase}
-                        ${crestLeftX},${yCrest}
-                        ${s1X},${yCrest}
-                        ${s1X},${ySpill}
-                        ${s2X},${ySpill}
-                        ${s2X},${yCrest}
-                        ${crestRightX},${yCrest}
-                        ${crestRightX},${yBase}
-                      `}
+                      points={
+                        dam.lSpill > 0
+                          ? `
+                            ${crestLeftX},${yBase}
+                            ${crestLeftX},${yCrest}
+                            ${s1X},${yCrest}
+                            ${s1X},${ySpill}
+                            ${s2X},${ySpill}
+                            ${s2X},${yCrest}
+                            ${crestRightX},${yCrest}
+                            ${crestRightX},${yBase}
+                          `
+                          : `
+                            ${crestLeftX},${yBase}
+                            ${crestLeftX},${yCrest}
+                            ${crestRightX},${yCrest}
+                            ${crestRightX},${yBase}
+                          `
+                      }
                       fill="url(#dam-clean-concrete)"
                       stroke={dark ? "#64748b" : "#475569"}
                       strokeWidth={2}
                     />
 
-                    {/* Central Spillway Chute */}
-                    <polygon
-                      points={`${s1X},${ySpill} ${s2X},${ySpill} ${s2X},${yBase} ${s1X},${yBase}`}
-                      fill={dark ? "#1e293b" : "#e2e8f0"}
-                      stroke={dark ? "#475569" : "#cbd5e1"}
-                    />
+                    {/* Central Spillway Chute (Only if spillway weir exists) */}
+                    {dam.lSpill > 0 && (
+                      <polygon
+                        points={`${s1X},${ySpill} ${s2X},${ySpill} ${s2X},${yBase} ${s1X},${yBase}`}
+                        fill={dark ? "#1e293b" : "#e2e8f0"}
+                        stroke={dark ? "#475569" : "#cbd5e1"}
+                      />
+                    )}
 
                     {/* Bottom Outlet Circle */}
                     <circle cx="310" cy={orifY} r={orifRpx} fill="#020617" stroke="#38bdf8" strokeWidth={2} />
@@ -704,8 +746,8 @@ export function DamFloodRoutingPlayground() {
                       Ø d = {dam.orificeDiameter}m
                     </text>
 
-                    {/* Overflow Flow Down Spillway Chute */}
-                    {isCurrentlySpilling && (
+                    {/* Overflow Flow Down Spillway Chute (Only if spillway weir exists and active) */}
+                    {dam.lSpill > 0 && isCurrentlySpilling && (
                       <g className="elevation-spill-flow">
                         <polygon
                           points={`${s1X + 2},${ySpill} ${s2X - 2},${ySpill} ${s2X - 2},${yBase} ${s1X + 2},${yBase}`}
@@ -750,26 +792,42 @@ export function DamFloodRoutingPlayground() {
                       </text>
                     </g>
 
-                    {/* Spillway Width Dimension L_spill */}
-                    <g stroke="#0284c7" strokeWidth={1}>
-                      <line x1={s1X} y1={ySpill - 8} x2={s2X} y2={ySpill - 8} strokeDasharray="2 2" />
-                      <line x1={s1X} y1={ySpill - 12} x2={s1X} y2={ySpill - 4} />
-                      <line x1={s2X} y1={ySpill - 12} x2={s2X} y2={ySpill - 4} />
+                    {/* Spillway Width Dimension L_spill (Only if L > 0) */}
+                    {dam.lSpill > 0 ? (
+                      <g stroke="#0284c7" strokeWidth={1}>
+                        <line x1={s1X} y1={ySpill - 8} x2={s2X} y2={ySpill - 8} strokeDasharray="2 2" />
+                        <line x1={s1X} y1={ySpill - 12} x2={s1X} y2={ySpill - 4} />
+                        <line x1={s2X} y1={ySpill - 12} x2={s2X} y2={ySpill - 4} />
+                        <text
+                          x="310"
+                          y={ySpill - 11}
+                          textAnchor="middle"
+                          fontSize="9.5"
+                          fontFamily="var(--font-ibm-plex-mono), monospace"
+                          fontWeight="bold"
+                          fill="#0284c7"
+                          stroke="var(--paper)"
+                          strokeWidth={2}
+                          paintOrder="stroke fill"
+                        >
+                          L_savak = {dam.lSpill}m
+                        </text>
+                      </g>
+                    ) : (
                       <text
                         x="310"
-                        y={ySpill - 11}
+                        y={yCrest + 22}
                         textAnchor="middle"
                         fontSize="9.5"
                         fontFamily="var(--font-ibm-plex-mono), monospace"
-                        fontWeight="bold"
-                        fill="#0284c7"
+                        fill="var(--mut)"
                         stroke="var(--paper)"
-                        strokeWidth={2}
+                        strokeWidth={1.5}
                         paintOrder="stroke fill"
                       >
-                        L_savak = {dam.lSpill}m
+                        {lang === "tr" ? "(Dolu Savaksız Gövde - L=0)" : "(No Spillway Installed - L=0)"}
                       </text>
-                    </g>
+                    )}
 
                     {/* Elevation Heights on Right */}
                     <text
@@ -1105,15 +1163,17 @@ export function DamFloodRoutingPlayground() {
               />
             </div>
 
-            {/* Spillway Width L_spill */}
+            {/* Spillway Width L_spill (starts from 0) */}
             <div className="p-2.5 bg-[var(--atlas-card)] border border-[var(--line)] rounded-md flex flex-col gap-1 shadow-2xs">
               <div className="flex justify-between items-baseline font-plex-mono text-[10.5px]">
                 <span className="text-[var(--ink)] font-semibold">{lang === "tr" ? "Savak Eni (L):" : "Weir L:"}</span>
-                <span className="font-bold text-[#0284c7]">{dam.lSpill} m</span>
+                <span className="font-bold text-[#0284c7]">
+                  {dam.lSpill === 0 ? (lang === "tr" ? "0 m (Savaksız)" : "0 m (No Weir)") : `${dam.lSpill} m`}
+                </span>
               </div>
               <input
                 type="range"
-                min={5}
+                min={0}
                 max={dam.lCrest}
                 step={1}
                 value={dam.lSpill}
@@ -1139,19 +1199,30 @@ export function DamFloodRoutingPlayground() {
               />
             </div>
 
-            {/* Reservoir Surface Area */}
+            {/* Maximum Reservoir Storage Capacity S_max (Number input + Slider) */}
             <div className="p-2.5 bg-[var(--atlas-card)] border border-[var(--line)] rounded-md flex flex-col gap-1 shadow-2xs">
-              <div className="flex justify-between items-baseline font-plex-mono text-[10.5px]">
-                <span className="text-[var(--ink)] font-semibold">{lang === "tr" ? "Göl Alanı:" : "Pool Area:"}</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">{dam.reservoirAreaKm2} km²</span>
+              <div className="flex justify-between items-center font-plex-mono text-[10.5px]">
+                <span className="text-[var(--ink)] font-semibold">{lang === "tr" ? "Maks. Hacim (S):" : "Max Storage (S):"}</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min={0.5}
+                    max={150}
+                    step={0.5}
+                    value={dam.maxStorageHm3 ?? 15}
+                    onChange={(e) => updateDamParam("maxStorageHm3", Math.max(0.2, Number(e.target.value)))}
+                    className="w-13 px-1 py-0.5 text-right font-bold text-emerald-600 dark:text-emerald-400 bg-[var(--paper)] border border-[var(--line)] rounded text-[11px]"
+                  />
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 text-[10px]">hm³</span>
+                </div>
               </div>
               <input
                 type="range"
-                min={0.2}
-                max={2.5}
-                step={0.05}
-                value={dam.reservoirAreaKm2}
-                onChange={(e) => updateDamParam("reservoirAreaKm2", Number(e.target.value))}
+                min={1}
+                max={50}
+                step={0.5}
+                value={dam.maxStorageHm3 ?? 15}
+                onChange={(e) => updateDamParam("maxStorageHm3", Number(e.target.value))}
                 className="w-full accent-emerald-600 cursor-pointer h-1.5"
               />
             </div>
@@ -1328,13 +1399,16 @@ export function DamFloodRoutingPlayground() {
                   <div className="p-2.5 rounded bg-[var(--paper)] border border-[var(--line)] font-mono text-[12.5px] text-center font-bold">
                     dS / dt = I(t) - Q(t, h)
                   </div>
-                  <div className="p-2 rounded bg-[var(--paper)] border border-[var(--line)] font-mono text-[11px] text-center text-[var(--ink2)]">
-                    A<sub>göl</sub> · (dh / dt) = I(t) - Q(t, h)
+                  <div className="p-2 rounded bg-[var(--paper)] border border-[var(--line)] font-mono text-[10.5px] text-center text-[var(--ink2)] space-y-0.5">
+                    <div>A(h) · (dh / dt) = I(t) - Q(t, h)</div>
+                    <div className="text-[9.5px] text-[var(--mut)]">
+                      S(h) = S<sub>maks</sub> · [ 0.2·(h/H) + 0.8·(h/H)² ] &nbsp;|&nbsp; A(h) = dS/dh
+                    </div>
                   </div>
                   <p className="text-[11px] text-[var(--ink2)] leading-relaxed mt-1">
                     {lang === "tr"
-                      ? "Gelen taşkın debisi I(t) ile çıkış debisi Q(t, h) arasındaki fark, göl yüzey alanında depolanan hacmi (dS = A·dh) oluşturur. 4. Mertebe Runge-Kutta (RK4) sayısal algoritması bu diferansiyel denklemi adım adım çözer."
-                      : "The difference between inflow I(t) and discharge Q(t, h) drives the change in stored water volume (dS = A·dh). The Level-Pool engine integrates this relationship step-by-step using a 4th-Order Runge-Kutta (RK4) numerical scheme."}
+                      ? "Gelen taşkın debisi I(t) ile çıkış debisi Q(t, h) arasındaki fark rezervuar hacmini değiştirir. Vadi topoğrafyasına bağlı hazne hacim-kot eğrisi S(h) ve anlık su yüzeyi alanı A(h) üzerinden seviye artışı dh/dt hesaplanır. 4. Mertebe Runge-Kutta (RK4) sayısal algoritması bu diferansiyel denklemi adım adım çözer."
+                      : "The difference between inflow I(t) and discharge Q(t, h) drives the change in stored water volume. The dynamic valley stage-storage curve S(h) and surface area A(h) govern the water level rate dh/dt, integrated using a 4th-Order Runge-Kutta (RK4) scheme."}
                   </p>
                 </div>
               </div>

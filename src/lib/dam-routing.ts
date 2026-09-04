@@ -23,7 +23,9 @@ export interface DamParameters {
   c2: number;
   /** Reference head (Hr), meters (default = 1.0 m) */
   hr: number;
-  /** Reservoir pool surface area, km² (assumed constant or mean for level pool) */
+  /** Maximum reservoir storage capacity at crest elevation, hm³ (million m³) */
+  maxStorageHm3?: number;
+  /** Reservoir pool surface area, km² (optional / derived) */
   reservoirAreaKm2: number;
   /** Initial water elevation, meters */
   h0: number;
@@ -89,6 +91,7 @@ export const DEFAULT_DAM_PARAMS: DamParameters = {
   c1: 0.62,
   c2: 2.1,
   hr: 1.0,
+  maxStorageHm3: 15.0,
   reservoirAreaKm2: 0.85,
   h0: 8.0,
 };
@@ -118,6 +121,7 @@ export const DAM_PRESETS = [
       c1: 0.62,
       c2: 2.1,
       hr: 1.0,
+      maxStorageHm3: 15.0,
       reservoirAreaKm2: 0.85,
       h0: 8.0,
     },
@@ -145,6 +149,7 @@ export const DAM_PRESETS = [
       c1: 0.60,
       c2: 2.0,
       hr: 1.0,
+      maxStorageHm3: 18.0,
       reservoirAreaKm2: 1.2,
       h0: 0.0,
     },
@@ -172,6 +177,7 @@ export const DAM_PRESETS = [
       c1: 0.62,
       c2: 2.2,
       hr: 1.0,
+      maxStorageHm3: 9.0,
       reservoirAreaKm2: 0.35,
       h0: 16.0,
     },
@@ -251,25 +257,21 @@ export function calculateOutflowDischarge(h: number, params: DamParameters): Flo
     // Wet segment angle factor: theta = arccos(f), segment area = r^2 * (arccos(f) - f * sqrt(1 - f^2))
     // Standard hydraulic formula for circular segment:
     const segArea = r * r * (Math.acos(-f) - (-f) * Math.sqrt(1 - f * f));
-    // Effective velocity head: sqrt(2 * g * max(0.01, h))
     qOrifice = c1 * segArea * Math.sqrt(2 * g * h);
   } else {
-    // Fully submerged pressurized orifice flow: c1 * Oa * sqrt(2 * g * h)
     qOrifice = c1 * oa * Math.sqrt(2 * g * h);
   }
 
-  // 2. Spillway weir component
   let qSpillway = 0;
-  if (h > hSpill) {
+  if (h > hSpill && lSpill > 0) {
     const headOverSpill = (h - hSpill) / hr;
     qSpillway = c2 * lSpill * Math.pow(headOverSpill, 1.5);
   }
 
-  // 3. Dam Crest overtopping component
   let qOvertopping = 0;
   if (h > hMax) {
     const headOverCrest = (h - hMax) / hr;
-    const overtopLength = Math.max(0, lCrest - lSpill);
+    const overtopLength = Math.max(0, lCrest - Math.max(0, lSpill));
     qOvertopping = c2 * overtopLength * Math.pow(headOverCrest, 1.5);
   }
 
@@ -281,7 +283,9 @@ export function calculateOutflowDischarge(h: number, params: DamParameters): Flo
     regimeName = { en: "Regime 2: Pressurized Orifice Flow", tr: "Aşama 2: Basınçlı Dip Savak Akışı" };
   } else if (h > hSpill && h <= hMax) {
     regime = 3;
-    regimeName = { en: "Regime 3: Orifice + Spillway Discharge", tr: "Aşama 3: Dip Savak + Dolu Savak Akışı" };
+    regimeName = lSpill > 0
+      ? { en: "Regime 3: Orifice + Spillway Discharge", tr: "Aşama 3: Dip Savak + Dolu Savak Akışı" }
+      : { en: "Regime 2: Pressurized Orifice Flow (No Spillway)", tr: "Aşama 2: Basınçlı Dip Savak (Savaksız Gövde)" };
   } else if (h > hMax) {
     regime = 4;
     regimeName = { en: "Regime 4: Dam Crest Overtopping (Emergency!)", tr: "Aşama 4: Baraj Kreti Aşımı (Acil Durum!)" };
@@ -292,64 +296,55 @@ export function calculateOutflowDischarge(h: number, params: DamParameters): Flo
   return {
     regime,
     regimeName,
-    qOrifice,
-    qSpillway,
-    qOvertopping,
-    qTotal,
+    qOrifice: Number(qOrifice.toFixed(2)),
+    qSpillway: Number(qSpillway.toFixed(2)),
+    qOvertopping: Number(qOvertopping.toFixed(2)),
+    qTotal: Number(qTotal.toFixed(2)),
   };
 }
 
-/**
- * Computes inflow rate I(t) at any time t (hours) based on configured hydrograph
- */
 export function evaluateInflow(tHours: number, config: InflowHydrographConfig): number {
   if (tHours < 0 || tHours > config.durationHours) {
     return config.baseflow;
   }
 
-  const tp = Math.max(0.1, config.timeToPeakHours);
-  const td = Math.max(tp * 1.5, config.durationHours);
-  const peakNet = Math.max(0, config.peakInflow - config.baseflow);
+  const netPeak = Math.max(0, config.peakInflow - config.baseflow);
 
   if (config.shape === "gamma") {
-    // Synthetic Gamma curve with alpha = 2.5
-    const alpha = 2.5;
+    const tp = Math.max(0.5, config.timeToPeakHours);
     const ratio = tHours / tp;
-    const gammaFactor = Math.pow(ratio, alpha) * Math.exp(-alpha * (ratio - 1));
-    return config.baseflow + peakNet * Math.max(0, gammaFactor);
+    const shapeFactor = 2.4;
+    const qNorm = Math.pow(ratio, shapeFactor) * Math.exp(-shapeFactor * (ratio - 1));
+    return config.baseflow + netPeak * Math.max(0, qNorm);
   }
 
   if (config.shape === "triangular") {
+    const tp = Math.max(0.5, config.timeToPeakHours);
+    const td = Math.max(tp + 1, config.durationHours);
     if (tHours <= tp) {
-      return config.baseflow + peakNet * (tHours / tp);
-    } else if (tHours <= td) {
-      return config.baseflow + peakNet * (1 - (tHours - tp) / (td - tp));
+      return config.baseflow + netPeak * (tHours / tp);
+    } else {
+      return config.baseflow + netPeak * Math.max(0, (td - tHours) / (td - tp));
     }
-    return config.baseflow;
   }
 
   if (config.shape === "trapezoid") {
-    // Sustained storm peak from tp to tp + 0.3 * duration
-    const plateauEnd = Math.min(td - 0.2 * td, tp + 0.25 * td);
-    if (tHours <= tp) {
-      return config.baseflow + peakNet * (tHours / tp);
-    } else if (tHours <= plateauEnd) {
-      return config.baseflow + peakNet;
-    } else if (tHours <= td) {
-      return config.baseflow + peakNet * (1 - (tHours - plateauEnd) / (td - plateauEnd));
+    const tRise = Math.max(0.5, config.timeToPeakHours * 0.7);
+    const tPlateauEnd = Math.max(tRise + 0.5, config.timeToPeakHours * 1.5);
+    const td = Math.max(tPlateauEnd + 1, config.durationHours);
+
+    if (tHours <= tRise) {
+      return config.baseflow + netPeak * (tHours / tRise);
+    } else if (tHours <= tPlateauEnd) {
+      return config.baseflow + netPeak;
+    } else {
+      return config.baseflow + netPeak * Math.max(0, (td - tHours) / (td - tPlateauEnd));
     }
-    return config.baseflow;
   }
 
   return config.baseflow;
 }
 
-/**
- * Performs Level-Pool Reservoir Flood Routing by solving the continuity mass balance:
- *   dS/dt = I(t) - Q(t, h)
- *   dh/dt = (I(t) - Q(t, h)) / A_res
- * Using 4th-Order Runge-Kutta (RK4) integration for high numerical stability and smoothness.
- */
 export function solveReservoirRouting(
   dam: DamParameters,
   inflowConfig: InflowHydrographConfig,
@@ -358,7 +353,23 @@ export function solveReservoirRouting(
   const durationHours = Math.max(8, inflowConfig.durationHours);
   const dtHours = durationHours / totalSteps;
   const dtSeconds = dtHours * 3600;
-  const areaM2 = dam.reservoirAreaKm2 * 1_000_000;
+
+  const maxStorageM3 = (dam.maxStorageHm3 !== undefined
+    ? dam.maxStorageHm3 * 1_000_000
+    : dam.reservoirAreaKm2 * dam.hMax * 1_000_000);
+
+  const getAreaAtStage = (hVal: number): number => {
+    const hClamped = Math.max(0, hVal);
+    const ratio = dam.hMax > 0 ? hClamped / dam.hMax : 1;
+    const baseArea = maxStorageM3 / Math.max(1, dam.hMax);
+    return baseArea * (0.2 + 1.6 * ratio);
+  };
+
+  const getStorageAtStage = (hVal: number): number => {
+    const hClamped = Math.max(0, hVal);
+    const ratio = dam.hMax > 0 ? hClamped / dam.hMax : 1;
+    return maxStorageM3 * (0.2 * ratio + 0.8 * ratio * ratio);
+  };
 
   const steps: RoutingStep[] = [];
   let currentStage = dam.h0;
@@ -371,11 +382,11 @@ export function solveReservoirRouting(
   let totalInflowM3 = 0;
   let totalOutflowM3 = 0;
 
-  // Rate function: dh/dt = (I - Q) / A_res
   const dhdt = (tH: number, hVal: number): number => {
     const iVal = evaluateInflow(tH, inflowConfig);
     const flow = calculateOutflowDischarge(hVal, dam);
-    return (iVal - flow.qTotal) / areaM2;
+    const area = getAreaAtStage(hVal);
+    return (iVal - flow.qTotal) / Math.max(1000, area);
   };
 
   for (let i = 0; i <= totalSteps; i++) {
@@ -405,7 +416,7 @@ export function solveReservoirRouting(
       inflow: Number(inf.toFixed(2)),
       outflow: Number(flow.qTotal.toFixed(2)),
       stage: Number(currentStage.toFixed(3)),
-      storageM3: Math.round(areaM2 * currentStage),
+      storageM3: Math.round(getStorageAtStage(currentStage)),
       qOrifice: Number(flow.qOrifice.toFixed(2)),
       qSpillway: Number(flow.qSpillway.toFixed(2)),
       qOvertopping: Number(flow.qOvertopping.toFixed(2)),
@@ -413,7 +424,6 @@ export function solveReservoirRouting(
     });
 
     if (i < totalSteps) {
-      // 4th-Order Runge-Kutta step
       const k1 = dhdt(tH, currentStage);
       const k2 = dhdt(tH + 0.5 * dtHours, currentStage + 0.5 * dtSeconds * k1);
       const k3 = dhdt(tH + 0.5 * dtHours, currentStage + 0.5 * dtSeconds * k2);
@@ -443,8 +453,8 @@ export function solveReservoirRouting(
     isOvertopped,
     totalInflowVolumeM3: Math.round(totalInflowM3),
     totalOutflowVolumeM3: Math.round(totalOutflowM3),
-    initialStorageM3: Math.round(areaM2 * dam.h0),
-    maxStorageM3: Math.round(areaM2 * maxStage),
+    initialStorageM3: Math.round(getStorageAtStage(dam.h0)),
+    maxStorageM3: Math.round(getStorageAtStage(maxStage)),
   };
 
   return { steps, summary };
