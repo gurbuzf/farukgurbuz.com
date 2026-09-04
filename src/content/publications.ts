@@ -1,13 +1,16 @@
+import type { Bilingual } from "./types";
+
 export type Publication = {
   idLabel: string;
   filled: boolean;
-  title: string;
+  title: string | Bilingual;
   authors: string[];
   highlightAuthor: string;
   year: string;
-  venue: string;
+  venue: string | Bilingual;
   doi?: string;
   url?: string;
+  langNote?: Bilingual;
 };
 
 export type PublicationGroup = {
@@ -92,13 +95,19 @@ export const publicationGroups: PublicationGroup[] = [
       {
         idLabel: "J.1",
         filled: true,
-        title:
-          "Estimation of Missing Streamflow Records in the Euphrates Basin using Flow Duration Curves and Regression Models",
+        title: {
+          en: "Estimation of Missing Streamflow Records in the Euphrates Basin using Flow Duration Curves and Regression Models",
+          tr: "Fırat Havzası’ndaki Eksik Akım Verilerinin Debi Süreklilik Çizgileri ve Regresyon Modelleri ile Tahmin Edilmesi",
+        },
         authors: ["Tosunoglu", "İspirli", "Gurbuz", "Şengül"],
         highlightAuthor: "Gurbuz",
         year: "2017",
         venue: "Iğdır Univ. J. Inst. Sci. & Tech.",
         doi: "10.21597/jist.2017.201",
+        langNote: {
+          en: "In Turkish",
+          tr: "Türkçe",
+        },
       },
     ],
   },
@@ -108,12 +117,21 @@ export const publicationGroups: PublicationGroup[] = [
       {
         idLabel: "B.1",
         filled: true,
-        title:
-          "Türkiye’de Sürdürülebilir Su Kaynakları Yönetimi Uygulamalarında Çoruh Havzası’nın Yeri",
+        title: {
+          en: "The Role of the Çoruh Basin in Sustainable Water Resources Management Practices in Türkiye",
+          tr: "Türkiye’de Sürdürülebilir Su Kaynakları Yönetimi Uygulamalarında Çoruh Havzası’nın Yeri",
+        },
         authors: ["Gürbüz", "Sarıkaya", "Akca"],
         highlightAuthor: "Gürbüz",
         year: "2025",
-        venue: "Artvin’de Su, Barajlar ve Enerji (Akçağ Yayınları), Cilt 1, ss. 363–380",
+        venue: {
+          en: "Water, Dams and Energy in Artvin (Akçağ Publishing), Vol. 1, pp. 363–380",
+          tr: "Artvin’de Su, Barajlar ve Enerji (Akçağ Yayınları), Cilt 1, ss. 363–380",
+        },
+        langNote: {
+          en: "In Turkish",
+          tr: "Türkçe",
+        },
         url: "https://scholar.google.com/citations?view_op=view_citation&hl=tr&user=CVfKPpUAAAAJ&citation_for_view=CVfKPpUAAAAJ:YsMSGLbcyi4C",
       },
     ],

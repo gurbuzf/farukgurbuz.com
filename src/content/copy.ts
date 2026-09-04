@@ -150,6 +150,8 @@ export const copy = {
   },
 };
 
-export function t<K extends { en: string; tr: string }>(field: K, lang: Lang): string {
-  return field[lang];
+export function t(field: string | { en: string; tr: string } | undefined, lang: Lang): string {
+  if (!field) return "";
+  if (typeof field === "string") return field;
+  return field[lang] ?? field.en;
 }
