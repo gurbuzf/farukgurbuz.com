@@ -17,10 +17,6 @@ import {
   Play,
   Pause,
   RotateCcw,
-  TrendingDown,
-  Clock,
-  ShieldCheck,
-  ShieldAlert,
   Waves,
   ChevronDown,
   ChevronUp,
@@ -194,97 +190,7 @@ export function DamFloodRoutingPlayground() {
         </div>
       </div>
 
-      {/* ── Key Hydraulic Metrics Summary Row (Lab 01 Style) ──────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[var(--line)] border-b border-[var(--line)] bg-[var(--paper)]">
-        {/* Metric 1: Dam Safety Freeboard */}
-        <div className="p-3 sm:p-3.5 flex flex-col justify-center">
-          <span className="font-plex-mono text-[10px] font-semibold text-[var(--mut)] uppercase tracking-wider flex items-center gap-1">
-            {summary.isOvertopped ? (
-              <span className="text-rose-600 flex items-center gap-1 font-bold">
-                <ShieldAlert size={12} /> {lang === "tr" ? "Kret Aşımı Tehlikesi" : "Overtopping Risk"}
-              </span>
-            ) : (
-              <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1 font-bold">
-                <ShieldCheck size={12} /> {lang === "tr" ? "Hava Payı (Emniyet)" : "Safety Freeboard"}
-              </span>
-            )}
-          </span>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span
-              className={`font-display font-bold text-[19px] sm:text-[21px] leading-tight ${
-                summary.isOvertopped ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
-              }`}
-            >
-              {summary.isOvertopped
-                ? `-${(summary.maxStage - dam.hMax).toFixed(2)} m`
-                : `+${summary.minFreeboard.toFixed(2)} m`}
-            </span>
-          </div>
-          <span className="font-plex-mono text-[9px] text-[var(--mut)] mt-0.5">
-            {summary.isOvertopped
-              ? (lang === "tr" ? "Kret Kotu Aşıldı!" : "Water Exceeds Crest!")
-              : (lang === "tr" ? `H_kret = ${dam.hMax} m` : `H_crest = ${dam.hMax} m`)}
-          </span>
-        </div>
 
-        {/* Metric 2: Flood Peak Attenuation */}
-        <div className="p-3 sm:p-3.5 flex flex-col justify-center">
-          <span className="font-plex-mono text-[10px] font-semibold text-[var(--mut)] uppercase tracking-wider flex items-center gap-1">
-            <TrendingDown size={12} className="text-sky-600" />
-            {lang === "tr" ? "Pik Sönümleme" : "Peak Attenuation"}
-          </span>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="font-display font-bold text-[19px] sm:text-[21px] text-[#0284c7] leading-tight">
-              -{summary.peakAttenuationPercent}%
-            </span>
-            <span className="font-plex-mono text-[10px] text-[var(--mut)]">
-              (-{summary.peakAttenuationM3s} m³/s)
-            </span>
-          </div>
-          <span className="font-plex-mono text-[9px] text-[var(--mut)] mt-0.5">
-            {summary.peakInflow} → {summary.peakOutflow} m³/s
-          </span>
-        </div>
-
-        {/* Metric 3: Flood Lag Time */}
-        <div className="p-3 sm:p-3.5 flex flex-col justify-center">
-          <span className="font-plex-mono text-[10px] font-semibold text-[var(--mut)] uppercase tracking-wider flex items-center gap-1">
-            <Clock size={12} className="text-purple-600" />
-            {lang === "tr" ? "Öteleme Gecikmesi" : "Peak Delay Lag"}
-          </span>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="font-display font-bold text-[19px] sm:text-[21px] text-purple-700 dark:text-purple-400 leading-tight">
-              +{summary.lagTimeHours} h
-            </span>
-            <span className="font-plex-mono text-[10px] text-[var(--mut)]">
-              {lang === "tr" ? "erteleme" : "delay"}
-            </span>
-          </div>
-          <span className="font-plex-mono text-[9px] text-[var(--mut)] mt-0.5">
-            t_in: {summary.timeToPeakInflowHours}h → t_out: {summary.timeToPeakOutflowHours}h
-          </span>
-        </div>
-
-        {/* Metric 4: Peak Water Stage */}
-        <div className="p-3 sm:p-3.5 flex flex-col justify-center">
-          <span className="font-plex-mono text-[10px] font-semibold text-[var(--mut)] uppercase tracking-wider">
-            {lang === "tr" ? "En Yüksek Su Kotu" : "Peak Water Stage"}
-          </span>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="font-display font-bold text-[19px] sm:text-[21px] text-[var(--ink)] leading-tight">
-              {summary.maxStage.toFixed(2)} m
-            </span>
-            <span className="font-plex-mono text-[10px] text-[var(--mut)]">
-              / {dam.hMax} m
-            </span>
-          </div>
-          <span className="font-plex-mono text-[9px] text-[var(--mut)] mt-0.5">
-            {summary.maxStage > dam.hSpill
-              ? (lang === "tr" ? "Dolu Savak Devrede" : "Spillway Active")
-              : (lang === "tr" ? "Sadece Dip Savak" : "Orifice Flow Only")}
-          </span>
-        </div>
-      </div>
 
       {/* ── VISUAL WORKBENCH: DAM (LEFT) + HYDROGRAPH WITH DUAL AXIS (RIGHT) ── */}
       <div className="grid grid-cols-1 xl:grid-cols-2 divide-y xl:divide-y-0 xl:divide-x divide-[var(--line)] bg-[var(--atlas-card)]">
