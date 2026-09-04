@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-const TITLE = "Publications";
-const DESCRIPTION = "Peer-reviewed papers and research output by Faruk Gürbüz in hydrology and geospatial data science.";
+const TITLE = "Publications — Faruk Gürbüz | Hydrology & GIS Research";
+const DESCRIPTION = "Peer-reviewed journal articles, conference papers, and thesis publications by Faruk Gürbüz covering hydrology, water resources engineering, geospatial data science, and flood risk analysis.";
 
 export const metadata: Metadata = {
   title: TITLE,

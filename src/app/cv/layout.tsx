@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-const TITLE = "CV";
-const DESCRIPTION = "Follow the channel downstream — 2011 at the source, today at the gauge. The career of Faruk Gürbüz.";
+const TITLE = "CV — Faruk Gürbüz | Water Resources Engineer & GIS Specialist";
+const DESCRIPTION = "Academic and professional curriculum vitae of Faruk Gürbüz — Water Resources Engineer, Geospatial Data Scientist, and GIS specialist with experience in hydrological modeling, remote sensing, and flood risk analysis.";
 
 export const metadata: Metadata = {
   title: TITLE,
