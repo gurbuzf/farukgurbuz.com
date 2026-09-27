@@ -41,8 +41,8 @@ const personSchema = {
     },
     {
       "@type": "CollegeOrUniversity",
-      name: "Middle East Technical University",
-      url: "https://www.metu.edu.tr",
+      name: "Istanbul Technical University",
+      url: "https://www.itu.edu.tr",
     },
   ],
 };

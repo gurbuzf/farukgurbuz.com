@@ -2,6 +2,8 @@ import type { Bilingual } from "./types";
 
 export type BadgeColor = "acc" | "field" | "role" | "contour" | "gold";
 
+export type TimelineLink = { label: Bilingual; href: string };
+
 export type TimelineEntry = {
   kind: "WORK" | "FIELD" | "ROLE" | "EDU" | "AWARD";
   badge: BadgeColor;
@@ -10,9 +12,30 @@ export type TimelineEntry = {
   title?: Bilingual;
   bullets?: Bilingual[];
   text?: Bilingual;
+  links?: TimelineLink[];
 };
 
 export const timeline: TimelineEntry[] = [
+  {
+    kind: "EDU",
+    badge: "contour",
+    emphasized: false,
+    meta: { en: "17–21 AUG 2026 · İSTANBUL", tr: "17–21 AĞU 2026 · İSTANBUL" },
+    text: {
+      en: "Participant — Earth Observation Summer School 2026 (Data Science for Earth Observation: Hands-on Training in Python, R and Julia), organized by the OpenGeoHub Foundation in collaboration with İstanbul Technical University, Faculty of Aeronautics and Astronautics",
+      tr: "Katılımcı — Earth Observation Summer School 2026 (Data Science for Earth Observation: Hands-on Training in Python, R and Julia); OpenGeoHub Vakfı tarafından İstanbul Teknik Üniversitesi Uçak ve Uzay Bilimleri Fakültesi iş birliğiyle düzenlendi",
+    },
+    links: [
+      {
+        label: { en: "OpenGeoHub Foundation", tr: "OpenGeoHub Vakfı" },
+        href: "https://opengeohub.org/",
+      },
+      {
+        label: { en: "EO Summer School 2026", tr: "EO Summer School 2026" },
+        href: "https://opengeohub.org/2026/01/29/earth-observation-summer-school-2026/",
+      },
+    ],
+  },
   {
     kind: "WORK",
     badge: "acc",
@@ -36,8 +59,8 @@ export const timeline: TimelineEntry[] = [
         tr: "Çevresel CBS vektör veri setleri hazırladı; baskı kalitesinde bilimsel harita ve görselleştirmeler üretti",
       },
       {
-        en: "Editorial review of two publications; UX/UI prototyping for an institutional academy platform in Figma",
-        tr: "İki yayının editöryel incelemesini yaptı; kurumsal bir akademi platformu için Figma'da UX/UI prototipleme gerçekleştirdi",
+        en: "Editorial review of publications on topics such as green infrastructure and remote sensing; UX/UI prototyping for institutional platforms",
+        tr: "Yeşil altyapı ve uzaktan algılama gibi konulardaki yayınların editöryel incelemesini yaptı; kurumsal platformlar için UX/UI prototipleme gerçekleştirdi",
       },
     ],
   },
@@ -213,7 +236,8 @@ export const skillGroups: SkillGroup[] = [
     heading: { en: "DESIGN & DOCS", tr: "TASARIM & DOKÜMANLAR" },
     skills: [
       { label: "Figma · HTML · Markdown" },
-      { label: "LaTeX · Illustrator" },
+      { label: "Illustrator · InDesign · Inkscape" },
+      { label: "LaTeX" },
     ],
   },
 ];
@@ -224,7 +248,6 @@ export const languages: { label: Bilingual; level: Bilingual }[] = [
 ];
 
 export const contact = [
-  { label: "gurbuzfrk@gmail.com", href: "mailto:gurbuzfrk@gmail.com" },
   { label: "github.com/gurbuzf", href: "https://github.com/gurbuzf" },
   { label: "linkedin/faruk-gurbuz", href: "https://www.linkedin.com/in/faruk-gurbuz" },
 ];

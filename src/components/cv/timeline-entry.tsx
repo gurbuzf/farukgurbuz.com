@@ -63,6 +63,21 @@ export function TimelineEntry({ entry, lang }: { entry: TimelineEntryType; lang:
       <div className="mt-2 font-display font-medium text-[15px] leading-[1.5] text-[var(--ink)]">
         {entry.text ? t(entry.text, lang) : null}
       </div>
+      {entry.links && entry.links.length > 0 && (
+        <div className="mt-2.5 flex flex-wrap gap-2">
+          {entry.links.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 border border-[var(--line)] hover:border-[var(--acc)] font-plex-mono font-medium text-[11px] text-[var(--ink2)] hover:text-[var(--acc)] no-underline transition-colors"
+            >
+              {t(link.label, lang)} <span aria-hidden="true">↗</span>
+            </a>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

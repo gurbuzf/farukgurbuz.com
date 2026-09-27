@@ -1,7 +1,11 @@
 /**
  * Dam Hydraulics & Level-Pool Reservoir Flood Routing Engine
- * Simulates reservoir continuity mass balance dS/dt = I(t) - Q(t, h)
+ * Simulates reservoir continuity mass balance dS/dt = I(t) - Q(h)
  * with piecewise stage-discharge hydraulics across orifices, weirs, and crests.
+ *
+ * Time integration: classical explicit 4th-order Runge-Kutta (RK4) with a
+ * fixed step (Δt = duration / totalSteps). No adaptive step-size control
+ * (e.g. RK45 / Dormand-Prince) is used.
  */
 
 export type HydrographShape = "gamma" | "triangular" | "trapezoid";
@@ -205,6 +209,7 @@ export const DAM_PRESETS = [
       c1: 0.62,
       c2: 2.0,
       hr: 1.0,
+      maxStorageHm3: 6.3,
       reservoirAreaKm2: 0.45,
       h0: 10.5,
     },

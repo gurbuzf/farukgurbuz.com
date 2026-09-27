@@ -185,7 +185,6 @@ export const copy = {
       en: "© 2026 FARUK GÜRBÜZ · WATER RESOURCES & GEOSPATIAL DATA SCIENCE",
       tr: "© 2026 FARUK GÜRBÜZ · SU KAYNAKLARI & MEKANSAL VERİ BİLİMİ",
     },
-    email: { en: "EMAIL", tr: "E-POSTA" },
     github: { en: "GITHUB", tr: "GITHUB" },
     linkedin: { en: "LINKEDIN", tr: "LINKEDIN" },
     scholar: { en: "SCHOLAR", tr: "SCHOLAR" },

@@ -5,7 +5,6 @@ import {
   GithubIcon,
   LinkedinIcon,
   ScholarIcon,
-  MailIcon,
 } from "@/components/ui/social-links";
 
 export function FeaturePhoto({ lang }: { lang: Lang }) {
@@ -75,13 +74,6 @@ export function FeaturePhoto({ lang }: { lang: Lang }) {
               className="p-1.5 text-[var(--ink)] hover:text-[var(--acc)] hover:bg-[var(--paper)] rounded-sm transition-colors"
             >
               <LinkedinIcon size={14} />
-            </a>
-            <a
-              href="mailto:gurbuzfrk@gmail.com"
-              title="Email"
-              className="p-1.5 text-[var(--ink)] hover:text-[var(--acc)] hover:bg-[var(--paper)] rounded-sm transition-colors"
-            >
-              <MailIcon size={14} />
             </a>
           </div>
         </div>

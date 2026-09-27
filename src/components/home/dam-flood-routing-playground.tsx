@@ -53,6 +53,12 @@ function MathSqrt({ children }: { children: React.ReactNode }) {
 
 export function DamFloodRoutingPlayground() {
   const { lang, dark } = useAtlas();
+  const tr = lang === "tr";
+
+  // Subscript labels for hydraulic symbols (H_spill, L_crest, …) in the active language
+  const sym = tr
+    ? { spill: "savak", crest: "kret", orifice: "dip", max: "maks", wet: "ıslak" }
+    : { spill: "spill", crest: "crest", orifice: "outlet", max: "max", wet: "wet" };
 
   // Dam & Inflow Parameters State
   const [dam, setDam] = useState<DamParameters>(DEFAULT_DAM_PARAMS);
@@ -160,8 +166,9 @@ export function DamFloodRoutingPlayground() {
   const updateInflowParam = (key: keyof InflowHydrographConfig, value: any) => {
     setInflow((prev) => {
       const next = { ...prev, [key]: value };
-      if (key === "durationHours" && next.timeToPeakHours >= value) {
-        next.timeToPeakHours = Math.max(1, value * 0.35);
+      // Keep the peak inside the flood window (matches the Tp slider's 60 % cap)
+      if (key === "durationHours" && next.timeToPeakHours > value * 0.6) {
+        next.timeToPeakHours = Math.max(1, Math.floor(value * 0.6 * 2) / 2);
       }
       if (key === "timeToPeakHours" && next.durationHours <= value) {
         next.durationHours = value * 2.5;
@@ -178,23 +185,9 @@ export function DamFloodRoutingPlayground() {
   return (
     <div className="w-full bg-[var(--atlas-card)] border-[1.5px] border-[var(--frame)] rounded-xl overflow-hidden shadow-[6px_6px_0_var(--shadow)] transition-all flex flex-col">
       {/* ── Top Header Toolbar (Lab 01 Style) ─────────────────────────── */}
-      <div className="p-4 sm:p-5 border-b border-[var(--line)] bg-[var(--paper)] flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-plex-mono text-[9.5px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[var(--line)] text-[var(--acc)] border border-[var(--frame)]">
-              {t(copy.damLab.eyebrow, lang)}
-            </span>
-          </div>
-          <h3 className="font-display font-bold text-[20px] sm:text-[24px] text-[var(--ink)] tracking-tight mt-1">
-            {t(copy.damLab.title, lang)}
-          </h3>
-          <p className="font-display text-[12px] sm:text-[13px] text-[var(--mut)] max-w-3xl leading-snug mt-0.5">
-            {t(copy.damLab.desc, lang)}
-          </p>
-        </div>
-
-        {/* Preset Scenarios Selector */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 self-start lg:self-center">
+      <div className="px-4 sm:px-5 py-3.5 border-b border-[var(--line)] bg-[var(--paper)] flex flex-col gap-2">
+        {/* Preset Scenarios Selector (title & description live in the page section header) */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
           <span className="font-plex-mono text-[10px] font-bold text-[var(--mut)] uppercase tracking-wider">
             {t(copy.damLab.controls.presetsHeading, lang)}
           </span>
@@ -215,6 +208,16 @@ export function DamFloodRoutingPlayground() {
             ))}
           </div>
         </div>
+        <p className="font-display text-[12px] leading-snug text-[var(--mut)]">
+          {(() => {
+            const preset = DAM_PRESETS.find((p) => p.id === activePreset);
+            return preset
+              ? t(preset.desc, lang)
+              : tr
+              ? "Özel senaryo: parametreleri aşağıdaki kaydırıcılarla değiştirdiniz."
+              : "Custom scenario: parameters adjusted with the sliders below.";
+          })()}
+        </p>
       </div>
 
 
@@ -247,7 +250,7 @@ export function DamFloodRoutingPlayground() {
                     : "text-[var(--mut)] hover:text-[var(--ink)]"
                 }`}
               >
-                {lang === "tr" ? "🏛️ Boykesit (Ön Görünüş)" : "🏛️ Downstream Elevation"}
+                {lang === "tr" ? "🏛️ Mansap Görünüşü" : "🏛️ Downstream Elevation"}
               </button>
             </div>
 
@@ -436,7 +439,7 @@ export function DamFloodRoutingPlayground() {
                                 strokeWidth={2}
                                 paintOrder="stroke fill"
                               >
-                                q_dip = {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s
+                                q_{sym.orifice} = {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s
                               </text>
                             </g>
                           );
@@ -474,7 +477,7 @@ export function DamFloodRoutingPlayground() {
                             strokeWidth={2}
                             paintOrder="stroke fill"
                           >
-                            🌊 q_savak = {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s
+                            🌊 q_{sym.spill} = {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s
                           </text>
                         </g>
                       );
@@ -524,7 +527,7 @@ export function DamFloodRoutingPlayground() {
                       {/* Spillway Level Indicator (Only if spillway weir exists) */}
                       {dam.lSpill > 0 && (
                         <>
-                          <line x1="63" y1={ySpill} x2="xCrestEnd" y2={ySpill} stroke="#0284c7" strokeWidth={1} strokeDasharray="3 2" opacity={0.6} />
+                          <line x1="63" y1={ySpill} x2={xUp} y2={ySpill} stroke="#0284c7" strokeWidth={1} strokeDasharray="3 2" opacity={0.6} />
                           <text
                             x="58"
                             y={ySpill + 3}
@@ -537,13 +540,13 @@ export function DamFloodRoutingPlayground() {
                             strokeWidth={2}
                             paintOrder="stroke fill"
                           >
-                            H_savak = {dam.hSpill}m
+                            {dam.hSpill}m
                           </text>
                         </>
                       )}
 
                       {/* Crest Level Indicator */}
-                      <line x1="63" y1={yCrest} x2="xCrestEnd" y2={yCrest} stroke="var(--ink)" strokeWidth={1} strokeDasharray="3 2" opacity={0.6} />
+                      <line x1="63" y1={yCrest} x2={xUp} y2={yCrest} stroke="var(--ink)" strokeWidth={1} strokeDasharray="3 2" opacity={0.6} />
                       <text
                         x="58"
                         y={yCrest + 3}
@@ -556,7 +559,7 @@ export function DamFloodRoutingPlayground() {
                         strokeWidth={2}
                         paintOrder="stroke fill"
                       >
-                        H_kret = {dam.hMax}m
+                        {dam.hMax}m
                       </text>
                     </g>
 
@@ -572,7 +575,7 @@ export function DamFloodRoutingPlayground() {
                       strokeWidth={2}
                       paintOrder="stroke fill"
                     >
-                      🏔️ H_kret: {dam.hMax}m
+                      🏔️ H_{sym.crest}: {dam.hMax}m
                     </text>
                     {dam.lSpill > 0 ? (
                       <text
@@ -586,7 +589,7 @@ export function DamFloodRoutingPlayground() {
                         strokeWidth={2}
                         paintOrder="stroke fill"
                       >
-                        🌊 H_savak: {dam.hSpill}m (L={dam.lSpill}m)
+                        🌊 H_{sym.spill}: {dam.hSpill}m (L={dam.lSpill}m)
                       </text>
                     ) : (
                       <text
@@ -712,7 +715,7 @@ export function DamFloodRoutingPlayground() {
                           strokeWidth={2.5}
                           paintOrder="stroke fill"
                         >
-                          🌊 q_savak = {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s
+                          🌊 q_{sym.spill} = {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s
                         </text>
                       </g>
                     )}
@@ -734,7 +737,7 @@ export function DamFloodRoutingPlayground() {
                         strokeWidth={2}
                         paintOrder="stroke fill"
                       >
-                        L_kret = {dam.lCrest}m
+                        L_{sym.crest} = {dam.lCrest}m
                       </text>
                     </g>
 
@@ -756,7 +759,7 @@ export function DamFloodRoutingPlayground() {
                           strokeWidth={2}
                           paintOrder="stroke fill"
                         >
-                          L_savak = {dam.lSpill}m
+                          L_{sym.spill} = {dam.lSpill}m
                         </text>
                       </g>
                     ) : (
@@ -787,7 +790,7 @@ export function DamFloodRoutingPlayground() {
                       strokeWidth={2}
                       paintOrder="stroke fill"
                     >
-                      H_kret: {dam.hMax}m
+                      H_{sym.crest}: {dam.hMax}m
                     </text>
                     <text
                       x={crestRightX + 12}
@@ -800,7 +803,7 @@ export function DamFloodRoutingPlayground() {
                       strokeWidth={2}
                       paintOrder="stroke fill"
                     >
-                      H_savak: {dam.hSpill}m
+                      H_{sym.spill}: {dam.hSpill}m
                     </text>
                   </g>
                 );
@@ -817,10 +820,10 @@ export function DamFloodRoutingPlayground() {
             <span className="text-[var(--mut)]">→</span>
             <span className="text-[#059669] font-bold">Q(t): {currentOutflow.toFixed(1)} m³/s</span>
             <span className="text-[var(--mut)]">|</span>
-            <span>Dip: {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s</span>
-            <span>Savak: {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s</span>
+            <span>{tr ? "Dip savak" : "Outlet"}: {currentFlowBreakdown.qOrifice.toFixed(1)} m³/s</span>
+            <span>{tr ? "Dolu savak" : "Spillway"}: {currentFlowBreakdown.qSpillway.toFixed(1)} m³/s</span>
             {currentFlowBreakdown.qOvertopping > 0 && (
-              <span className="text-rose-600 font-bold animate-pulse">Kret: {currentFlowBreakdown.qOvertopping.toFixed(1)} m³/s</span>
+              <span className="text-rose-600 font-bold animate-pulse">{tr ? "Kret aşımı" : "Overtopping"}: {currentFlowBreakdown.qOvertopping.toFixed(1)} m³/s</span>
             )}
           </div>
         </div>
@@ -834,13 +837,13 @@ export function DamFloodRoutingPlayground() {
             </h4>
             <div className="flex items-center gap-3 font-plex-mono text-[10px]">
               <span className="flex items-center gap-1 text-[#0284c7] font-bold">
-                <span className="w-2.5 h-1 bg-[#0284c7] rounded-xs" /> I(t) Giriş
+                <span className="w-2.5 h-1 bg-[#0284c7] rounded-xs" /> I(t) {tr ? "Giriş" : "Inflow"}
               </span>
               <span className="flex items-center gap-1 text-[#059669] font-bold">
-                <span className="w-2.5 h-1 bg-[#059669] rounded-xs" /> Q(t) Çıkış
+                <span className="w-2.5 h-1 bg-[#059669] rounded-xs" /> Q(t) {tr ? "Çıkış" : "Outflow"}
               </span>
               <span className="flex items-center gap-1 text-purple-600 font-bold">
-                <span className="w-2.5 h-0.5 border-t border-dashed border-purple-600" /> h(t) Kot
+                <span className="w-2.5 h-0.5 border-t border-dashed border-purple-600" /> h(t) {tr ? "Kot" : "Stage"}
               </span>
             </div>
           </div>
@@ -921,7 +924,7 @@ export function DamFloodRoutingPlayground() {
                       <g className="chart-spillway-ref">
                         <line x1={padL} y1={ySpill} x2={padL + plotW} y2={ySpill} stroke="#0284c7" strokeWidth={1} strokeDasharray="4 2" />
                         <text x={padL + plotW + 4} y={ySpill - 3} fontSize="8" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#0284c7">
-                          H_savak
+                          H_{sym.spill}
                         </text>
                       </g>
                     );
@@ -934,7 +937,7 @@ export function DamFloodRoutingPlayground() {
                       <g className="chart-crest-ref">
                         <line x1={padL} y1={yCrest} x2={padL + plotW} y2={yCrest} stroke="#dc2626" strokeWidth={1.2} strokeDasharray="3 2" />
                         <text x={padL + plotW + 4} y={yCrest - 3} fontSize="8" fontFamily="var(--font-ibm-plex-mono), monospace" fontWeight="bold" fill="#dc2626">
-                          H_kret
+                          H_{sym.crest}
                         </text>
                       </g>
                     );
@@ -1035,6 +1038,45 @@ export function DamFloodRoutingPlayground() {
           </div>
         </div>
       </div>
+
+      {/* ── ROUTING RESULTS SUMMARY (whole event, independent of the time cursor) ── */}
+      {(() => {
+        const m = copy.damLab.metrics;
+        const cards: { label: string; value: string; unit: string; tone: string; hint?: string }[] = [
+          { label: t(m.peakInflow, lang), value: summary.peakInflow.toFixed(1), unit: "m³/s", tone: "text-[#0284c7]", hint: `t = ${summary.timeToPeakInflowHours} h` },
+          { label: t(m.peakOutflow, lang), value: summary.peakOutflow.toFixed(1), unit: "m³/s", tone: "text-[#059669]", hint: `t = ${summary.timeToPeakOutflowHours} h` },
+          { label: t(m.attenuation, lang), value: summary.peakAttenuationPercent.toFixed(1), unit: "%", tone: "text-[var(--ink)]", hint: `ΔQ = ${summary.peakAttenuationM3s.toFixed(1)} m³/s` },
+          { label: t(m.lagTime, lang), value: summary.lagTimeHours.toFixed(1), unit: tr ? "sa" : "h", tone: "text-[var(--ink)]" },
+          { label: t(m.maxStage, lang), value: summary.maxStage.toFixed(2), unit: "m", tone: "text-purple-600 dark:text-purple-400", hint: `H_${sym.crest} = ${dam.hMax} m` },
+          summary.isOvertopped
+            ? { label: t(m.overtopping, lang), value: (-summary.minFreeboard).toFixed(2), unit: tr ? "m aşım" : "m over", tone: "text-rose-600", hint: tr ? "Kret aşıldı!" : "Crest overtopped!" }
+            : { label: t(m.freeboard, lang), value: summary.minFreeboard.toFixed(2), unit: "m", tone: "text-emerald-600 dark:text-emerald-400", hint: tr ? "En düşük hava payı" : "Minimum freeboard" },
+        ];
+        return (
+          <div className="px-4 sm:px-5 py-3.5 border-t border-[var(--line)] bg-[var(--atlas-card)]">
+            <div className="flex items-center justify-between gap-2 mb-2.5">
+              <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider text-[var(--ink)]">
+                {tr ? "ÖTELEME SONUÇLARI (TÜM OLAY)" : "ROUTING RESULTS (FULL EVENT)"}
+              </span>
+              <span className="font-plex-mono text-[9.5px] text-[var(--mut)] hidden sm:inline">
+                {tr ? "Parametre değiştikçe anında güncellenir" : "Updates instantly as you change parameters"}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              {cards.map((c) => (
+                <div key={c.label} className="p-2.5 bg-[var(--paper)] border border-[var(--line)] rounded-md shadow-2xs">
+                  <div className="font-plex-mono text-[9.5px] uppercase tracking-wider text-[var(--mut)] truncate">{c.label}</div>
+                  <div className="mt-0.5 flex items-baseline gap-1">
+                    <span className={`font-plex-mono font-bold text-[17px] leading-tight ${c.tone}`}>{c.value}</span>
+                    <span className="font-plex-mono text-[10px] text-[var(--ink2)]">{c.unit}</span>
+                  </div>
+                  {c.hint && <div className="font-plex-mono text-[9.5px] text-[var(--mut)] mt-0.5">{c.hint}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── COMPACT PARAMETERS UNDER DAM (Takes less space, unobtrusive) ── */}
       <div className="p-4 sm:p-5 border-t border-[var(--line)] bg-[var(--paper)] flex flex-col gap-3">
@@ -1179,7 +1221,7 @@ export function DamFloodRoutingPlayground() {
 
         {/* TAB 2: INFLOW HYDROGRAPH (Compact 4-column grid) */}
         {controlsTab === "hydrology" && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {/* Hydrograph Shape */}
             <div className="p-2.5 bg-[var(--atlas-card)] border border-[var(--line)] rounded-md flex flex-col gap-1 shadow-2xs">
               <span className="font-plex-mono text-[10.5px] font-semibold text-[var(--ink)]">
@@ -1216,6 +1258,23 @@ export function DamFloodRoutingPlayground() {
                 step={5}
                 value={inflow.peakInflow}
                 onChange={(e) => updateInflowParam("peakInflow", Number(e.target.value))}
+                className="w-full accent-[#0284c7] cursor-pointer h-1.5"
+              />
+            </div>
+
+            {/* Time to Peak */}
+            <div className="p-2.5 bg-[var(--atlas-card)] border border-[var(--line)] rounded-md flex flex-col gap-1 shadow-2xs">
+              <div className="flex justify-between items-baseline font-plex-mono text-[10.5px]">
+                <span className="text-[var(--ink)] font-semibold">{tr ? "Pike Varış (Tp):" : "Time to Peak:"}</span>
+                <span className="font-bold text-[#0284c7]">{inflow.timeToPeakHours} h</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={Math.max(1.5, Math.floor(inflow.durationHours * 0.6))}
+                step={0.5}
+                value={inflow.timeToPeakHours}
+                onChange={(e) => updateInflowParam("timeToPeakHours", Number(e.target.value))}
                 className="w-full accent-[#0284c7] cursor-pointer h-1.5"
               />
             </div>
@@ -1320,13 +1379,13 @@ export function DamFloodRoutingPlayground() {
               <div className="bg-[var(--atlas-card)] p-4 rounded-lg border border-[var(--line)] flex flex-col justify-between gap-2.5">
                 <div>
                   <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider text-[var(--acc)]">
-                    {lang === "tr" ? "2. BATİMETRİK HAZNE HACİM & YÜZEY ALAN EĞRİLERİ" : "2. BATHYMETRIC STAGE-STORAGE & SURFACE AREA CURVES"}
+                    {lang === "tr" ? "2. İDEALİZE KOT-HACİM & YÜZEY ALANI EĞRİLERİ" : "2. IDEALIZED STAGE-STORAGE & SURFACE-AREA CURVES"}
                   </span>
                   <div className="mt-2.5 p-2.5 rounded bg-[var(--paper)] border border-[var(--line)] font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[13px] sm:text-[14px] text-center text-[var(--ink)] space-y-1.5 shadow-2xs">
                     <div>
                       <span className="italic">S</span><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
                       <span className="mx-1.5 not-italic">=</span>
-                      <span className="italic">S</span><sub className="not-italic text-[10px]">maks</sub>
+                      <span className="italic">S</span><sub className="not-italic text-[10px]">{sym.max}</sub>
                       <span className="mx-1 not-italic">·</span>
                       <span className="not-italic">[</span>
                       <span className="not-italic">0.2</span>
@@ -1345,7 +1404,7 @@ export function DamFloodRoutingPlayground() {
                       <span className="mx-1.5 not-italic">=</span>
                       <MathFrac num={<><span className="italic">d</span><span className="italic">S</span></>} den={<><span className="italic">d</span><span className="italic">h</span></>} className="text-[11.5px]" />
                       <span className="mx-1.5 not-italic">=</span>
-                      <MathFrac num={<><span className="italic">S</span><sub className="not-italic text-[9px]">maks</sub></>} den={<span className="italic">H</span>} className="text-[11.5px]" />
+                      <MathFrac num={<><span className="italic">S</span><sub className="not-italic text-[9px]">{sym.max}</sub></>} den={<span className="italic">H</span>} className="text-[11.5px]" />
                       <span className="mx-1 not-italic">·</span>
                       <span className="not-italic">[</span>
                       <span className="not-italic">0.2</span>
@@ -1360,8 +1419,8 @@ export function DamFloodRoutingPlayground() {
                 </div>
                 <p className="text-[11.5px] text-[var(--ink2)] leading-relaxed">
                   {lang === "tr"
-                    ? "Doğal vadi topoğrafyasında su seviyesi yükseldikçe vadi genişler; ikinci dereceden paraboloit depolama bağıntısı gerçekçi hazne geometrisini simüle eder."
-                    : "Natural valley bathymetry widens as water elevation climbs, represented accurately by the parabolic hypsometric storage relationship."}
+                    ? "Gerçek batimetri verisi yerine, su seviyesi yükseldikçe genişleyen bir vadiyi temsil eden ikinci dereceden varsayımsal bir kot-hacim bağıntısı kullanılır. A(h), bu bağıntının türevidir (A = dS/dh)."
+                    : "Instead of surveyed bathymetry, an assumed quadratic stage-storage relation represents a valley that widens as the water rises. A(h) is its derivative (A = dS/dh)."}
                 </p>
               </div>
             </div>
@@ -1405,19 +1464,19 @@ export function DamFloodRoutingPlayground() {
 
                     <div className={`flex items-center gap-3 px-2 py-0.5 rounded transition-all ${currentFlowBreakdown.regime === 2 ? "bg-sky-500/15 font-bold text-sky-700 dark:text-sky-300" : "opacity-80"}`}>
                       <span className="w-16"><span className="italic">Q</span><sub className="not-italic text-[10px]">2</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">),</span></span>
-                      <span className="font-plex-mono text-[11px] text-[var(--mut)] w-36"><span className="italic">d</span> ≤ <span className="italic">h</span> ≤ <span className="italic">H</span><sub className="not-italic text-[9px]">savak</sub></span>
+                      <span className="font-plex-mono text-[11px] text-[var(--mut)] w-36"><span className="italic">d</span> ≤ <span className="italic">h</span> ≤ <span className="italic">H</span><sub className="not-italic text-[9px]">{sym.spill}</sub></span>
                       <span className="font-display text-[11px] text-[var(--ink2)]">({lang === "tr" ? "Basınçlı Dip Savak Akışı" : "Pressurized Submerged Orifice"})</span>
                     </div>
 
                     <div className={`flex items-center gap-3 px-2 py-0.5 rounded transition-all ${currentFlowBreakdown.regime === 3 ? "bg-sky-500/15 font-bold text-sky-700 dark:text-sky-300" : "opacity-80"}`}>
                       <span className="w-16"><span className="italic">Q</span><sub className="not-italic text-[10px]">3</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">),</span></span>
-                      <span className="font-plex-mono text-[11px] text-[var(--mut)] w-36"><span className="italic">H</span><sub className="not-italic text-[9px]">savak</sub> &lt; <span className="italic">h</span> ≤ <span className="italic">H</span><sub className="not-italic text-[9px]">kret</sub></span>
+                      <span className="font-plex-mono text-[11px] text-[var(--mut)] w-36"><span className="italic">H</span><sub className="not-italic text-[9px]">{sym.spill}</sub> &lt; <span className="italic">h</span> ≤ <span className="italic">H</span><sub className="not-italic text-[9px]">{sym.crest}</sub></span>
                       <span className="font-display text-[11px] text-[var(--ink2)]">({lang === "tr" ? "Dip Savak + Dolu Savak Akışı" : "Submerged Orifice + Spillway Weir"})</span>
                     </div>
 
                     <div className={`flex items-center gap-3 px-2 py-0.5 rounded transition-all ${currentFlowBreakdown.regime === 4 ? "bg-rose-500/20 font-bold text-rose-700 dark:text-rose-300" : "opacity-80"}`}>
                       <span className="w-16"><span className="italic">Q</span><sub className="not-italic text-[10px]">4</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">),</span></span>
-                      <span className="font-plex-mono text-[11px] text-[var(--mut)] w-36"><span className="italic">h</span> &gt; <span className="italic">H</span><sub className="not-italic text-[9px]">kret</sub></span>
+                      <span className="font-plex-mono text-[11px] text-[var(--mut)] w-36"><span className="italic">h</span> &gt; <span className="italic">H</span><sub className="not-italic text-[9px]">{sym.crest}</sub></span>
                       <span className="font-display text-[11px] text-[var(--ink2)]">({lang === "tr" ? "Acil Durum Baraj Kreti Aşımı" : "Emergency Dam Crest Overtopping"})</span>
                     </div>
                   </div>
@@ -1429,8 +1488,8 @@ export function DamFloodRoutingPlayground() {
                 {/* Regime 1 Card */}
                 <div className={`p-3.5 rounded-lg border transition-all ${currentFlowBreakdown.regime === 1 ? "bg-sky-500/10 border-sky-500 shadow-sm" : "bg-[var(--paper)] border-[var(--line)] opacity-85"}`}>
                   <div className="flex justify-between items-center font-plex-mono text-[10.5px]">
-                    <span className="font-bold text-[var(--ink)]">Aşama 1: Kısmi Dolu Orifis (h &lt; d)</span>
-                    {currentFlowBreakdown.regime === 1 && <span className="text-sky-600 font-bold">● AKTİF</span>}
+                    <span className="font-bold text-[var(--ink)]">{tr ? "Aşama 1: Kısmi Dolu Dip Savak" : "Regime 1: Partially Filled Outlet"} (h &lt; d)</span>
+                    {currentFlowBreakdown.regime === 1 && <span className="text-sky-600 font-bold">● {tr ? "AKTİF" : "ACTIVE"}</span>}
                   </div>
                   <div className="mt-2.5 font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[14px] text-[var(--ink)] leading-relaxed overflow-x-auto pb-1">
                     <div>
@@ -1438,12 +1497,12 @@ export function DamFloodRoutingPlayground() {
                       <span className="mx-1.5 not-italic">=</span>
                       <span className="italic">c</span><sub className="not-italic text-[10px]">1</sub>
                       <span className="mx-1 not-italic">·</span>
-                      <span className="italic">A</span><sub className="not-italic text-[10px]">ıslak</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="italic">A</span><sub className="not-italic text-[10px]">{sym.wet}</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
                       <span className="mx-1 not-italic">·</span>
                       <MathSqrt><span className="not-italic">2</span><span className="italic">g</span><span className="italic">h</span></MathSqrt>
                     </div>
                     <div className="text-[12px] text-[var(--ink2)] mt-1.5">
-                      <span className="italic">A</span><sub className="not-italic text-[9px]">ıslak</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
+                      <span className="italic">A</span><sub className="not-italic text-[9px]">{sym.wet}</sub><span className="not-italic">(</span><span className="italic">h</span><span className="not-italic">)</span>
                       <span className="mx-1 not-italic">=</span>
                       <span className="italic">r</span><sup className="not-italic text-[9px]">2</sup>
                       <span className="mx-0.5 not-italic">[</span>
@@ -1464,8 +1523,8 @@ export function DamFloodRoutingPlayground() {
                 {/* Regime 2 Card */}
                 <div className={`p-3.5 rounded-lg border transition-all ${currentFlowBreakdown.regime === 2 ? "bg-sky-500/10 border-sky-500 shadow-sm" : "bg-[var(--paper)] border-[var(--line)] opacity-85"}`}>
                   <div className="flex justify-between items-center font-plex-mono text-[10.5px]">
-                    <span className="font-bold text-[var(--ink)]">Aşama 2: Basınçlı Dip Savak (d ≤ h ≤ H_savak)</span>
-                    {currentFlowBreakdown.regime === 2 && <span className="text-sky-600 font-bold">● AKTİF</span>}
+                    <span className="font-bold text-[var(--ink)]">{tr ? "Aşama 2: Basınçlı Dip Savak" : "Regime 2: Pressurized Outlet"} (d ≤ h ≤ H_{sym.spill})</span>
+                    {currentFlowBreakdown.regime === 2 && <span className="text-sky-600 font-bold">● {tr ? "AKTİF" : "ACTIVE"}</span>}
                   </div>
                   <div className="mt-2.5 font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[14px] text-[var(--ink)] leading-relaxed overflow-x-auto pb-1">
                     <div>
@@ -1478,7 +1537,7 @@ export function DamFloodRoutingPlayground() {
                       <MathSqrt><span className="not-italic">2</span><span className="italic">g</span><span className="italic">h</span></MathSqrt>
                     </div>
                     <div className="text-[12px] text-[var(--ink2)] mt-1.5">
-                      <span className="not-italic">burada </span>
+                      <span className="not-italic">{tr ? "burada " : "where "}</span>
                       <span className="italic">A</span><sub className="not-italic text-[9px]">o</sub>
                       <span className="mx-1 not-italic">=</span>
                       <MathFrac num={<><span className="not-italic">π</span> <span className="italic">d</span><sup className="not-italic text-[8px]">2</sup></>} den={<span className="not-italic">4</span>} className="text-[10.5px]" />
@@ -1490,8 +1549,8 @@ export function DamFloodRoutingPlayground() {
                 {/* Regime 3 Card */}
                 <div className={`p-3.5 rounded-lg border transition-all ${currentFlowBreakdown.regime === 3 ? "bg-sky-500/10 border-sky-500 shadow-sm" : "bg-[var(--paper)] border-[var(--line)] opacity-85"}`}>
                   <div className="flex justify-between items-center font-plex-mono text-[10.5px]">
-                    <span className="font-bold text-[var(--ink)]">Aşama 3: Dip + Dolu Savak (H_savak &lt; h ≤ H_kret)</span>
-                    {currentFlowBreakdown.regime === 3 && <span className="text-sky-600 font-bold">● AKTİF</span>}
+                    <span className="font-bold text-[var(--ink)]">{tr ? "Aşama 3: Dip + Dolu Savak" : "Regime 3: Outlet + Spillway"} (H_{sym.spill} &lt; h ≤ H_{sym.crest})</span>
+                    {currentFlowBreakdown.regime === 3 && <span className="text-sky-600 font-bold">● {tr ? "AKTİF" : "ACTIVE"}</span>}
                   </div>
                   <div className="mt-2.5 font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[14px] text-[var(--ink)] leading-relaxed overflow-x-auto pb-1">
                     <div>
@@ -1501,10 +1560,10 @@ export function DamFloodRoutingPlayground() {
                       <span className="mx-1.5 not-italic">+</span>
                       <span className="italic">c</span><sub className="not-italic text-[10px]">2</sub>
                       <span className="mx-1 not-italic">·</span>
-                      <span className="italic">L</span><sub className="not-italic text-[10px]">savak</sub>
+                      <span className="italic">L</span><sub className="not-italic text-[10px]">{sym.spill}</sub>
                       <span className="mx-1 not-italic">·</span>
                       <span className="not-italic">[</span>
-                      <MathFrac num={<><span className="italic">h</span> <span className="not-italic">−</span> <span className="italic">H</span><sub className="not-italic text-[8px]">savak</sub></>} den={<><span className="italic">H</span><sub className="not-italic text-[8px]">r</sub></>} className="text-[11.5px]" />
+                      <MathFrac num={<><span className="italic">h</span> <span className="not-italic">−</span> <span className="italic">H</span><sub className="not-italic text-[8px]">{sym.spill}</sub></>} den={<><span className="italic">H</span><sub className="not-italic text-[8px]">r</sub></>} className="text-[11.5px]" />
                       <span className="not-italic">]</span>
                       <sup className="not-italic text-[11px] align-super">
                         <MathFrac num="3" den="2" className="text-[8px]" />
@@ -1519,8 +1578,8 @@ export function DamFloodRoutingPlayground() {
                 {/* Regime 4 Card */}
                 <div className={`p-3.5 rounded-lg border transition-all ${currentFlowBreakdown.regime === 4 ? "bg-rose-500/15 border-rose-500 shadow-sm text-rose-700 dark:text-rose-300" : "bg-[var(--paper)] border-[var(--line)] opacity-85"}`}>
                   <div className="flex justify-between items-center font-plex-mono text-[10.5px]">
-                    <span className="font-bold">Aşama 4: Baraj Kreti Aşımı (h &gt; H_kret)</span>
-                    {currentFlowBreakdown.regime === 4 && <span className="font-bold animate-pulse">⚠️ KRİTİK AŞIM</span>}
+                    <span className="font-bold">{tr ? "Aşama 4: Baraj Kreti Aşımı" : "Regime 4: Dam Crest Overtopping"} (h &gt; H_{sym.crest})</span>
+                    {currentFlowBreakdown.regime === 4 && <span className="font-bold animate-pulse">⚠️ {tr ? "KRİTİK AŞIM" : "CRITICAL"}</span>}
                   </div>
                   <div className="mt-2.5 font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[14px] text-[var(--ink)] leading-relaxed overflow-x-auto pb-1">
                     <div>
@@ -1528,14 +1587,14 @@ export function DamFloodRoutingPlayground() {
                       <span className="mx-1.5 not-italic">=</span>
                       <span className="italic">Q</span><sub className="not-italic text-[10px]">2</sub>
                       <span className="mx-1.5 not-italic">+</span>
-                      <span className="italic">Q</span><sub className="not-italic text-[10px]">savak</sub>
+                      <span className="italic">Q</span><sub className="not-italic text-[10px]">{sym.spill}</sub>
                       <span className="mx-1.5 not-italic">+</span>
                       <span className="italic">c</span><sub className="not-italic text-[10px]">2</sub>
                       <span className="mx-1 not-italic">·</span>
-                      <span className="not-italic">(</span><span className="italic">L</span><sub className="not-italic text-[10px]">kret</sub> <span className="not-italic">−</span> <span className="italic">L</span><sub className="not-italic text-[10px]">savak</sub><span className="not-italic">)</span>
+                      <span className="not-italic">(</span><span className="italic">L</span><sub className="not-italic text-[10px]">{sym.crest}</sub> <span className="not-italic">−</span> <span className="italic">L</span><sub className="not-italic text-[10px]">{sym.spill}</sub><span className="not-italic">)</span>
                       <span className="mx-1 not-italic">·</span>
                       <span className="not-italic">[</span>
-                      <MathFrac num={<><span className="italic">h</span> <span className="not-italic">−</span> <span className="italic">H</span><sub className="not-italic text-[8px]">kret</sub></>} den={<><span className="italic">H</span><sub className="not-italic text-[8px]">r</sub></>} className="text-[11.5px]" />
+                      <MathFrac num={<><span className="italic">h</span> <span className="not-italic">−</span> <span className="italic">H</span><sub className="not-italic text-[8px]">{sym.crest}</sub></>} den={<><span className="italic">H</span><sub className="not-italic text-[8px]">r</sub></>} className="text-[11.5px]" />
                       <span className="not-italic">]</span>
                       <sup className="not-italic text-[11px] align-super">
                         <MathFrac num="3" den="2" className="text-[8px]" />
@@ -1552,7 +1611,7 @@ export function DamFloodRoutingPlayground() {
             {/* 3. Numerical Integration Scheme (RK4) */}
             <div className="bg-[var(--atlas-card)] p-4 rounded-lg border border-[var(--line)] flex flex-col gap-2">
               <span className="font-plex-mono text-[10px] font-bold uppercase tracking-wider text-[var(--acc)]">
-                {lang === "tr" ? "4. DİFERANSİYEL SÜREKLİLİK DENKLEMİNİN SAYISAL ÇÖZÜMÜ (4. MERTEBE RUNGE-KUTTA / RK4)" : "4. NUMERICAL INTEGRATION SCHEME (4TH-ORDER RUNGE-KUTTA / RK4)"}
+                {lang === "tr" ? "4. SAYISAL ÇÖZÜM: SABİT ADIMLI KLASİK RUNGE-KUTTA (RK4)" : "4. NUMERICAL SOLUTION: FIXED-STEP CLASSICAL RUNGE-KUTTA (RK4)"}
               </span>
               <div className="p-3 rounded bg-[var(--paper)] border border-[var(--line)] font-['STIX_Two_Math',_Cambria_Math,_Times_New_Roman,_serif] text-[13.5px] sm:text-[14.5px] text-center text-[var(--ink)] overflow-x-auto shadow-2xs">
                 <span className="italic">h</span><sub className="not-italic text-[10px]">n+1</sub>
@@ -1574,8 +1633,8 @@ export function DamFloodRoutingPlayground() {
               <div className="p-2.5 rounded bg-[var(--paper)] border border-[var(--line)] text-[11px] text-[var(--mut)]">
                 💡 <strong>{lang === "tr" ? "Sayısal Prensip:" : "Numerical Principle:"}</strong>{" "}
                 {lang === "tr"
-                  ? "Diferansiyel denklem her zaman adımında k₁, k₂, k₃, k₄ eğim katsayıları hesaplanarak 4. mertebeden yüksek hassasiyet ve kararlılıkla entegre edilir."
-                  : "The non-linear continuity differential equation is integrated at each time step using 4 weighted slope estimates for superior numerical stability."}
+                  ? "dh/dt = (I − Q) / A(h) denklemi, taşkın süresi 160 eşit adıma bölünerek (Δt = süre / 160) açık, sabit adımlı klasik RK4 yöntemiyle çözülür; her adımda dört eğim (k₁…k₄) hesaplanır. Uyarlamalı adım kontrolü (ör. RK45) kullanılmaz; her parametre değişikliğinde çözüm tarayıcıda yeniden hesaplanır."
+                  : "dh/dt = (I − Q) / A(h) is integrated with the explicit, fixed-step classical RK4 scheme: the flood duration is split into 160 equal steps (Δt = duration / 160) and four slope evaluations (k₁…k₄) are taken per step. No adaptive step-size control (e.g. RK45) is used; the solution is recomputed in the browser whenever a parameter changes."}
               </div>
             </div>
           </div>

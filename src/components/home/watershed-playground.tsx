@@ -38,9 +38,9 @@ import {
 // Topographic Characteristics:
 // - Two distinct neighboring catchments incised with branching tributary valleys:
 //   * West Basin (83 cells): Northwest & Northeast tributary branches converge at
-//     row 5, col 2 into a deep main channel draining to Edge Outlet [11, 3] (Lake A, 6m).
+//     row 5, col 2 into a deep main channel draining to Edge Outlet [11, 3] (Lake A, 0 m).
 //   * East Basin (97 cells): North & East tributary branches converge at
-//     row 6, col 11 into a deep main channel draining to Edge Outlet [11, 12] (Bay B, 8m).
+//     row 6, col 11 into a deep main channel draining to Edge Outlet [11, 12] (Bay B, 0 m).
 // - Both pour points are strictly located on the bottom raster EDGE (row 11).
 // - True topographical Drainage Divide (Su Ayrım Çizgisi) separates the two catchments.
 // - Designated Water Surface cells (Lake A and Coastal Bay B).
@@ -408,18 +408,20 @@ export function WatershedPlayground() {
     };
   }, [autoSimulating]);
 
-  const handleCellClick = useCallback((r: number, c: number) => {
-    setAutoSimulating(false);
-    setShowDivide(false);
-    setClicked((prev) => {
-      if (prev && prev[0] === r && prev[1] === c) {
-        setShowFloatingCard(false);
-        return null;
-      }
-      setShowFloatingCard(true);
-      return [r, c];
-    });
-  }, []);
+  const handleCellClick = useCallback(
+    (r: number, c: number) => {
+      setAutoSimulating(false);
+      setShowDivide(false);
+      const isSameCell = clicked !== null && clicked[0] === r && clicked[1] === c;
+      setClicked(isSameCell ? null : [r, c]);
+      setShowFloatingCard(!isSameCell);
+    },
+    [clicked]
+  );
+
+  // Draggable inspector card state & pointer event handlers
+  const [cardPosition, setCardPosition] = useState<{ x: number; y: number } | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
 
   // Responsive window resize listener & card position clamping
   useEffect(() => {
@@ -440,9 +442,7 @@ export function WatershedPlayground() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Draggable inspector card state & pointer event handlers
-  const [cardPosition, setCardPosition] = useState<{ x: number; y: number } | null>(null);
-  const cardRef = useRef<HTMLDivElement | null>(null);
+  // Draggable inspector card pointer event handlers
   const dragDataRef = useRef<{
     startX: number;
     startY: number;
@@ -680,7 +680,10 @@ export function WatershedPlayground() {
             type="button"
             onClick={() => {
               setShowDivide(false);
-              setAutoSimulating((prev) => !prev);
+              const next = !autoSimulating;
+              setAutoSimulating(next);
+              // Show the first storm seed right away instead of after a blank interval
+              if (next) setClicked(RAINSTORM_SEEDS[0]);
             }}
             className={`cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-plex-mono text-[10.5px] font-bold tracking-wider border transition-all duration-200 ${
               autoSimulating
@@ -1256,10 +1259,10 @@ export function WatershedPlayground() {
                   [{clicked[0] + 1}, {clicked[1] + 1}]
                 </span>
                 <span className="font-bold text-[12px] sm:text-[13px] text-[var(--ink)]">
-                  {targetElev} m
+                  {DEM[clicked[0]][clicked[1]]} m
                 </span>
                 <span className="text-[11px] text-[var(--mut)] hidden sm:inline">
-                  • D8: {DIR_ARROW[targetDir!]} {targetDir}
+                  • D8: {DIR_ARROW[d8[clicked[0]][clicked[1]]]} {d8[clicked[0]][clicked[1]]}
                 </span>
                 <span className="text-[11px] text-[var(--mut)]">
                   • {lang === "tr" ? "Havza" : "Basin"}: {selectedArea} km² ({lang === "tr" ? `%${selectedAreaPct}` : `${selectedAreaPct}%`})
@@ -1414,7 +1417,7 @@ export function WatershedPlayground() {
                 const t = (i / steps) * tMax;
                 const x = padL + (t / tMax) * plotW;
 
-                // Standard Gamma Synthetic Unit Hydrograph Equation:
+                // Gamma-shaped synthetic hydrograph scaled to the Rational peak (not a unit hydrograph):
                 // Q(t) = Qp * (t / Tp)^2.5 * exp(-2.5 * (t / Tp - 1))
                 // Exact peak verification: at t = Tp, Q(Tp) = Qp * 1^2.5 * exp(0) = Qp
                 const ratioC = tpCell > 0 ? t / tpCell : 0;
@@ -1424,7 +1427,7 @@ export function WatershedPlayground() {
                 const yC = hydroFloorY - (Math.min(qC, FIXED_Q_MAX) / FIXED_Q_MAX) * hydroH;
                 cellPts.push([x, yC]);
 
-                // Outlet flow (Standard Gamma Synthetic Unit Hydrograph)
+                // Outlet flow (same gamma-shaped hydrograph)
                 const ratioO = tpOutlet > 0 ? t / tpOutlet : 0;
                 const qO = (t > 0 && tpOutlet > 0)
                   ? qPeakOutletNum * Math.pow(ratioO, 2.5) * Math.exp(-2.5 * (ratioO - 1))
@@ -1450,11 +1453,11 @@ export function WatershedPlayground() {
                 ? (tagYCell > hydroCeilY + 34 ? tagYCell - 24 : tagYCell + 24)
                 : Math.max(dividerY + 20, Math.min(peakYOutlet - 10, hydroFloorY - 24));
 
-              const hyetoBars = [
-                { t0: 0, t1: 10, intensity: 20 },
-                { t0: 10, t1: 20, intensity: 35 },
-                { t0: 20, t1: 30, intensity: 15 },
-              ];
+              // Rational Method assumption: uniform design intensity lasting (at least) Tc,
+              // so the whole contributing area is draining when the peak occurs.
+              const stormDuration =
+                hydrographView === "outlet" ? tpOutlet : hydrographView === "compare" ? Math.max(tpCell, tpOutlet) : tpCell;
+              const hyetoBars = [{ t0: 0, t1: Math.min(tMax, stormDuration), intensity: 35 }];
 
               return (
                 <div className="w-full bg-[var(--paper)] border border-[var(--line)] rounded-md overflow-hidden p-2 shadow-2xs">
@@ -1480,7 +1483,7 @@ export function WatershedPlayground() {
                       fontWeight="bold"
                       fill="#0284c7"
                     >
-                      ▼ {lang === "tr" ? "YAĞIŞ HİYETOGRAFI (Tasarım Sağanağı: 30 dk)" : "RAINFALL HYETOGRAPH (30 min Storm)"}
+                      ▼ {lang === "tr" ? `TASARIM YAĞIŞI (Sabit şiddet, süre = Tc = ${stormDuration} dk)` : `DESIGN STORM (uniform intensity, duration = Tc = ${stormDuration} min)`}
                     </text>
                     <text
                       x={padL + plotW}
@@ -1532,27 +1535,27 @@ export function WatershedPlayground() {
                           />
                           {/* Intensity label centered inside bar */}
                           <text
-                            x={bx + bw / 2}
+                            x={bw >= 70 ? bx + bw / 2 : bx + bw + 6}
                             y={hyetoTop + bh / 2 + 3.5}
-                            textAnchor="middle"
+                            textAnchor={bw >= 70 ? "middle" : "start"}
                             fontSize="9.5"
                             fontFamily="var(--font-ibm-plex-mono), monospace"
-                            fill="#ffffff"
+                            fill={bw >= 70 ? "#ffffff" : "#0284c7"}
                             fontWeight="bold"
                           >
                             {bar.intensity} {lang === "tr" ? "mm/sa" : "mm/h"}
                           </text>
                           {/* Duration label cleanly below the bar */}
                           <text
-                            x={bx + bw / 2}
+                            x={bw >= 70 ? bx + bw / 2 : bx + 1}
                             y={hyetoTop + hyetoH + 12}
-                            textAnchor="middle"
+                            textAnchor={bw >= 70 ? "middle" : "start"}
                             fontSize="8.5"
                             fontFamily="var(--font-ibm-plex-mono), monospace"
                             fill="var(--ink2)"
                             fontWeight="500"
                           >
-                            {bar.t0}-{bar.t1} {lang === "tr" ? "dk" : "min"}
+                            {bar.t0}–{bar.t1} {lang === "tr" ? "dk" : "min"}
                           </text>
                         </g>
                       );
@@ -2136,8 +2139,8 @@ export function WatershedPlayground() {
 
                           <p className="text-[11.5px] text-[var(--ink2)] leading-relaxed mb-3 font-display">
                             {lang === "tr"
-                              ? "Küçük havzalarda taşkın piki için inşaat ve hidroloji mühendisliğinde standart olarak Rasyonel Metot kullanılır. Bu arazide seçtiğimiz tasarım parametreleri şunlardır:"
-                              : "The Rational Method is the established engineering standard for peak runoff estimation in small catchments. For this model, our design parameters are:"}
+                              ? "Rasyonel Metot, küçük havzalarda (tipik olarak birkaç km²) pik debi tahmini için kullanılan klasik bir yöntemdir. Buradaki havzalar bu sınırın üzerinde olabilir; yöntem burada yalnızca eğitim amaçlı, basit ve elle doğrulanabilir bir örnek olarak uygulanmıştır. Seçilen varsayımsal parametreler:"
+                              : "The Rational Method is a classic peak-discharge formula intended for small catchments (typically a few km²). The basins here can exceed that range — the method is applied purely as a simple, hand-checkable teaching example. The assumed parameters are:"}
                           </p>
 
                           {/* 3 Parameter Cards */}
@@ -2151,8 +2154,8 @@ export function WatershedPlayground() {
                               </div>
                               <p className="text-[10px] text-[var(--ink2)] mt-1.5 leading-snug">
                                 {lang === "tr"
-                                  ? "Dağlık ve yarı kayalık arazi; düşen yağışın %45'inin yüzey akışına dönüştüğünü ifade eder."
-                                  : "Mountainous, semi-rocky terrain where 45% of rainfall turns directly into surface runoff."}
+                                  ? "Dağlık, yarı kayalık arazi için varsayılan değer; pik anında yağış şiddetinin %45'inin yüzey akışına katkı verdiği kabul edilir."
+                                  : "Assumed value for mountainous, semi-rocky terrain: at the peak, 45% of the rainfall intensity contributes to surface runoff."}
                               </p>
                             </div>
 
@@ -2165,8 +2168,8 @@ export function WatershedPlayground() {
                               </div>
                               <p className="text-[10px] text-[var(--ink2)] mt-1.5 leading-snug">
                                 {lang === "tr"
-                                  ? "Bölge için 10 yıllık yineleme süresine (T = 10 yıl) karşılık gelen kritik fırtına şiddeti."
-                                  : "Critical design storm intensity corresponding to a 10-year recurrence interval (T = 10 yr)."}
+                                  ? "Örnek amaçlı seçilmiş sabit tasarım yağış şiddeti; gerçek bir IDF eğrisinden türetilmemiştir ve yağışın en az Tc süresince devam ettiği kabul edilir."
+                                  : "Illustrative, constant design intensity — not taken from a real IDF curve; the storm is assumed to last at least Tc."}
                               </p>
                             </div>
 
@@ -2257,8 +2260,8 @@ export function WatershedPlayground() {
                               </div>
                               <div className="text-[9.5px] text-[var(--mut)] pt-2 border-t border-[var(--line)] mt-2">
                                 {lang === "tr"
-                                  ? "* En dik münferit tepe hücresinde dahi yüzey akışının toparlanması için 8 dakikalık taban süre uygulanır."
-                                  : "* Even on a steep isolated hilltop, an 8-minute minimum overland flow baseline applies."}
+                                  ? "* L, hücre adımı sayısıdır (çapraz adımlar da 1 adım sayılır). Tek bir tepe hücresi için bile 8 dakikalık alt sınır uygulanır."
+                                  : "* L is counted in cell steps (diagonal steps also count as one). An 8-minute minimum applies even to a single hilltop cell."}
                               </div>
                             </div>
 
@@ -2272,14 +2275,14 @@ export function WatershedPlayground() {
                                 </div>
                                 <p className="text-[10.5px] text-[var(--ink2)] mt-1.5 leading-relaxed font-display">
                                   {lang === "tr"
-                                    ? "Bu hücrede oluşan taşkın dalgasının havzanın nihai dökülme noktasına (göl veya körfez) ulaşana kadar katettiği mansap ötelenme gecikmesidir."
-                                    : "Hydrodynamic downstream routing lag before the local discharge wave reaches the terminal outlet (lake or bay)."}
+                                    ? "Bu hücreden çıkan akışın havzanın nihai çıkışına (göl veya körfez) ulaşma süresidir. Sabit hızla basit bir seyahat süresi hesabıdır; hidrodinamik öteleme yapılmaz."
+                                    : "Time for flow leaving this cell to reach the terminal outlet (lake or bay). It is a simple constant-velocity travel time, not a hydrodynamic routing calculation."}
                                 </p>
                               </div>
                               <div className="text-[9.5px] text-[var(--mut)] pt-2 border-t border-[var(--line)] mt-2">
                                 {lang === "tr"
-                                  ? "* 1 km hücre / 4 dakika = ortalama 4.17 m/s taşkın dalga celerite hızı."
-                                  : "* 1 km cell / 4 minutes = ~4.17 m/s average flood wave celerity."}
+                                  ? "* 1 km hücre / 4 dakika ≈ 4.17 m/s varsayılan ortalama akış hızı."
+                                  : "* 1 km cell / 4 minutes ≈ 4.17 m/s assumed average flow velocity."}
                               </div>
                             </div>
                           </div>
@@ -2305,8 +2308,8 @@ export function WatershedPlayground() {
 
                           <p className="text-[11.5px] text-[var(--ink2)] leading-relaxed mb-3 font-display">
                             {lang === "tr"
-                              ? "Doğada akarsu debisi bir anda yükselip bıçak gibi sıfırlanmaz; zirveye ulaştıktan sonra kademeli bir sönümlenme eğrisi (çekilme kolu / recession limb) izler. Bu simülatörde kesintili üçgenler yerine sürekli analitik Gamma fonksiyonu kullanıyoruz:"
-                              : "In nature, streamflow doesn't drop abruptly to zero after peak; it follows a gradual recession limb. Instead of crude discrete triangles, we compute a continuous analytical Gamma distribution:"}
+                              ? "Doğada akarsu debisi bir anda yükselip bıçak gibi sıfırlanmaz; zirveye ulaştıktan sonra kademeli bir sönümlenme eğrisi (çekilme kolu / recession limb) izler. Bu simülatörde üçgen yerine, tepe değeri Rasyonel pik debiye eşitlenmiş sürekli gama biçimli bir fonksiyon kullanılır:"
+                              : "In nature, streamflow doesn't drop abruptly to zero after peak; it follows a gradual recession limb. Instead of a triangle, the hydrograph uses a continuous gamma-shaped function scaled so that its maximum equals the Rational peak:"}
                           </p>
 
                           <div className="p-3.5 bg-[var(--atlas-card)] rounded-lg border border-[var(--line)] mb-3">
@@ -2315,9 +2318,9 @@ export function WatershedPlayground() {
                             </div>
                             <div className="text-[10px] text-[var(--mut)] mt-1.5 font-display">
                               {lang === "tr" ? (
-                                <>Burada t geçen zamanı (dk), T<sub>p</sub> zirve anını (T<sub>c</sub>), Q<sub>p</sub> ise Rasyonel Metot pik debisini temsil eder. Denklemde t = T<sub>p</sub> yazıldığında (1)<sup>2.5</sup> × exp(0) = 1 kalır ve eğri tam olarak hesaplanan Q<sub>p</sub> değerine oturur.</>
+                                <>Burada t geçen zamanı (dk), T<sub>p</sub> zirve anını (T<sub>c</sub>), Q<sub>p</sub> ise Rasyonel Metot pik debisini temsil eder. Denklemde t = T<sub>p</sub> yazıldığında (1)<sup>2.5</sup> × exp(0) = 1 kalır ve eğri tam olarak hesaplanan Q<sub>p</sub> değerine oturur. Not: eğrinin biçimi önceden tanımlıdır; altındaki hacim etkili yağış hacmine eşitlenmez.</>
                               ) : (
-                                <>Where t is elapsed time (min), T<sub>p</sub> is time to peak (T<sub>c</sub>), and Q<sub>p</sub> is peak discharge. When t = T<sub>p</sub>, the term evaluates to (1)<sup>2.5</sup> × exp(0) = 1, ensuring mathematical consistency with peak discharge.</>
+                                <>Where t is elapsed time (min), T<sub>p</sub> is time to peak (T<sub>c</sub>), and Q<sub>p</sub> is the Rational peak discharge. When t = T<sub>p</sub>, the term evaluates to (1)<sup>2.5</sup> × exp(0) = 1, so the curve peaks exactly at Q<sub>p</sub>. Note: the curve's shape is prescribed; its volume is not constrained to equal the rainfall excess.</>
                               )}
                             </div>
                           </div>
@@ -2336,13 +2339,13 @@ export function WatershedPlayground() {
                             </div>
                             <div className="p-2.5 bg-[var(--atlas-card)] rounded border border-[var(--line)]">
                               <span className="text-[9px] text-[var(--mut)] block">t = 2.0 × T<sub>p</sub></span>
-                              <span className="font-bold text-[var(--ink)]">Q ≈ 0.36 × Q<sub>p</sub></span>
+                              <span className="font-bold text-[var(--ink)]">Q ≈ 0.46 × Q<sub>p</sub></span>
                               <span className="text-[9px] text-[var(--mut)] block mt-0.5">{lang === "tr" ? "Çekilme Kolu" : "Recession"}</span>
                             </div>
                             <div className="p-2.5 bg-[var(--atlas-card)] rounded border border-[var(--line)]">
                               <span className="text-[9px] text-[var(--mut)] block">t = 3.0 × T<sub>p</sub></span>
-                              <span className="font-bold text-[var(--ink)]">Q ≈ 0.04 × Q<sub>p</sub></span>
-                              <span className="text-[9px] text-[var(--mut)] block mt-0.5">{lang === "tr" ? "Doğal Sönümlenme" : "Base flow return"}</span>
+                              <span className="font-bold text-[var(--ink)]">Q ≈ 0.11 × Q<sub>p</sub></span>
+                              <span className="text-[9px] text-[var(--mut)] block mt-0.5">{lang === "tr" ? "Doğal Sönümlenme" : "Late recession"}</span>
                             </div>
                           </div>
                         </div>

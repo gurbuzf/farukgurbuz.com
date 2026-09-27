@@ -55,7 +55,13 @@ export function SkillsRail() {
         </div>
         <div className="mt-2.5 flex flex-col gap-[7px] font-plex-mono font-medium text-[12px]">
           {contact.map((c) => (
-            <a key={c.href} href={c.href} className="text-[var(--ink)] no-underline">
+            <a
+              key={c.href}
+              href={c.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--ink)] no-underline hover:text-[var(--acc)]"
+            >
               {c.label}
             </a>
           ))}

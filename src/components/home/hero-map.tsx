@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAtlas } from "@/lib/atlas-provider";
 import { copy, t } from "@/content/copy";
 import { FeaturePhoto } from "./feature-photo";
-import { SocialLinks, GithubIcon, LinkedinIcon, ScholarIcon, MailIcon } from "@/components/ui/social-links";
+import { SocialLinks, GithubIcon, LinkedinIcon, ScholarIcon } from "@/components/ui/social-links";
 import { ArrowRight, FileText, BookOpen } from "lucide-react";
 
 export function HeroMap() {
@@ -257,18 +257,6 @@ export function HeroMap() {
               <LinkedinIcon size={20} className="text-[#0077b5] dark:text-[#38a1db] group-hover:scale-110 transition-transform" />
               <span className="font-plex-mono text-[9.5px] font-bold text-[var(--ink)] mt-1">LinkedIn</span>
             </a>
-
-            <a
-              href="mailto:gurbuzfrk@gmail.com"
-              title="Email (gurbuzfrk@gmail.com)"
-              aria-label="Email"
-              className="flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg bg-[var(--paper)]/80 border border-[var(--frame)]/40 hover:border-[var(--acc)] active:scale-95 transition-all text-center group"
-            >
-              <MailIcon size={20} className="text-red-500 group-hover:scale-110 transition-transform" />
-              <span className="font-plex-mono text-[9.5px] font-bold text-[var(--ink)] mt-1">
-                {lang === "tr" ? "E-Posta" : "Email"}
-              </span>
-            </a>
           </div>
         </div>
 
@@ -385,7 +373,7 @@ export function HeroMap() {
 
           {/* Prominent High-Visibility Profile Logos */}
           <div className="mt-3 pt-2.5 border-t border-[var(--line)]">
-            <SocialLinks variant="hero" includeEmail={false} />
+            <SocialLinks variant="hero" />
           </div>
         </div>
 

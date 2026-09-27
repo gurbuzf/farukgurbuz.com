@@ -27,17 +27,8 @@ export function ScholarIcon({ size = 18, className = "" }: { size?: number; clas
   );
 }
 
-export function MailIcon({ size = 18, className = "" }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <rect width="20" height="16" x="2" y="4" rx="2" />
-      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-    </svg>
-  );
-}
-
 export interface SocialLinkItem {
-  id: "github" | "scholar" | "linkedin" | "email";
+  id: "github" | "scholar" | "linkedin";
   label: { en: string; tr: string };
   handle: string;
   href: string;
@@ -70,28 +61,17 @@ export const SOCIAL_LINKS: SocialLinkItem[] = [
     icon: LinkedinIcon,
     iconClass: "text-[#0077b5] dark:text-[#38a1db]",
   },
-  {
-    id: "email",
-    label: { en: "Email", tr: "E-Posta" },
-    handle: "gurbuzfrk@gmail.com",
-    href: "mailto:gurbuzfrk@gmail.com",
-    icon: MailIcon,
-    iconClass: "text-red-500",
-  },
 ];
 
 interface SocialLinksProps {
   variant?: "hero" | "header" | "lab" | "footer";
-  includeEmail?: boolean;
   className?: string;
 }
 
-export function SocialLinks({ variant = "hero", includeEmail = true, className = "" }: SocialLinksProps) {
+export function SocialLinks({ variant = "hero", className = "" }: SocialLinksProps) {
   const { lang } = useAtlas();
 
-  const linksToRender = includeEmail
-    ? SOCIAL_LINKS
-    : SOCIAL_LINKS.filter((item) => item.id !== "email");
+  const linksToRender = SOCIAL_LINKS;
 
   if (variant === "header") {
     return (
@@ -162,7 +142,7 @@ export function SocialLinks({ variant = "hero", includeEmail = true, className =
     );
   }
 
-  // "hero" variant: prominent, high-visibility brand logos (Email excluded by default)
+  // "hero" variant: prominent, high-visibility brand logos
   return (
     <div className={`flex items-center gap-3.5 flex-wrap ${className}`}>
       {linksToRender.map((item) => {
