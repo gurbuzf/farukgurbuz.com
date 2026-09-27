@@ -369,9 +369,11 @@ export function evaluateInflow(tHours: number, config: InflowHydrographConfig): 
 export function solveReservoirRouting(
   dam: DamParameters,
   inflowConfig: InflowHydrographConfig,
-  totalSteps = 160
+  totalSteps = 160,
+  /** Simulated period (h); defaults to the flood duration. Longer periods show the recession. */
+  horizonHours?: number
 ): { steps: RoutingStep[]; summary: RoutingSummary } {
-  const durationHours = Math.max(8, inflowConfig.durationHours);
+  const durationHours = Math.max(8, horizonHours ?? inflowConfig.durationHours);
   const dtHours = durationHours / totalSteps;
   const dtSeconds = dtHours * 3600;
 

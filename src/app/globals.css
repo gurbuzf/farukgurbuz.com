@@ -155,6 +155,22 @@
   --terrainA: 0.55;
   --terrainF: saturate(0.82);
   --gridA: 1;
+
+  /* Hydrology lab — chart series (validated categorical slots) & map ramps */
+  --viz-in: #2a78d6;
+  --viz-out: #eb6834;
+  --viz-outlet: #1baf7a;
+  --viz-spill: #4a3aa7;
+  --viz-good: #1a7f45;
+  --viz-bad: #c62f2f;
+  --map-elev-lo: #f3ecdc;
+  --map-elev-hi: #86653d;
+  --map-acc-lo: #eef5fb;
+  --map-acc-hi: #1d5fa8;
+  --map-water: #9fcbee;
+  --map-stream: #2a78d6;
+  --map-path: #eb6834;
+  --map-basin: #1baf7a;
 }
 
 :root[data-atlas-dark="true"] {
@@ -177,6 +193,21 @@
   --river: #2e5977;
   --terrainA: 0.3;
   --terrainF: saturate(0.6) brightness(0.75);
+
+  --viz-in: #3987e5;
+  --viz-out: #d95926;
+  --viz-outlet: #199e70;
+  --viz-spill: #9085e9;
+  --viz-good: #3fb56d;
+  --viz-bad: #ef6b6b;
+  --map-elev-lo: #1c2940;
+  --map-elev-hi: #c9ad84;
+  --map-acc-lo: #15243c;
+  --map-acc-hi: #6fb2f0;
+  --map-water: #2b5d8c;
+  --map-stream: #3987e5;
+  --map-path: #f08a4b;
+  --map-basin: #2fc28c;
 }
 
 @keyframes flowdash {
