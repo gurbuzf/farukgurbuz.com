@@ -27,7 +27,7 @@ There is no test suite configured yet.
 - The pre-migration Vite repository that used to be preserved under `_old_archive/` has been removed — all content has been migrated into `src/`. It's still recoverable from git history if ever needed.
 - The repo's remote is `gurbuzf/farukgurbuz.com` on GitHub, `main` branch (a `gh-pages` branch also exists from the old deploy setup — check whether it's still needed once the new hosting/deploy approach is decided).
 
-- **SEO**: build every page's metadata with `pageMetadata()` from `src/lib/seo.ts`. Next.js merges metadata shallowly, so a page that sets its own `openGraph`/`twitter` loses the site name and preview image unless it goes through the helper. Structured data: site-wide Person/WebSite in `src/components/seo/json-ld.tsx`; per-route schema (ProfilePage, LearningResource, ScholarlyArticle list, breadcrumbs) in each route's `page.tsx`/`layout.tsx` via `<StructuredData>`. Search Console verification codes go in `metadata.verification` in `src/app/layout.tsx` (not added yet).
+- **SEO**: build every page's metadata with `pageMetadata()` from `src/lib/seo.ts`. Next.js merges metadata shallowly, so a page that sets its own `openGraph`/`twitter` loses the site name and preview image unless it goes through the helper. Structured data: site-wide Person/WebSite in `src/components/seo/json-ld.tsx`; per-route schema (ProfilePage, LearningResource, ScholarlyArticle list, breadcrumbs) in each route's `page.tsx`/`layout.tsx` via `<StructuredData>`. Google Search Console ownership is already verified outside the codebase (no meta tag needed); other consoles' codes would go in `metadata.verification` in `src/app/layout.tsx`.
 
 ## Content status
 
