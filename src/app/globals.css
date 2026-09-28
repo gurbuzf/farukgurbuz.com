@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is([data-atlas-dark="true"] *, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -223,6 +223,16 @@
   }
   50% {
     opacity: 0.2;
+  }
+}
+
+/* Home hero: staggered entrance (delay set inline per block) */
+.hero-rise {
+  animation: heroFadeIn 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise {
+    animation: none;
   }
 }
 

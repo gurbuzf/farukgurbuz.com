@@ -1,11 +1,6 @@
 "use client";
 
 import { copy, t, type Lang } from "@/content/copy";
-import {
-  GithubIcon,
-  LinkedinIcon,
-  ScholarIcon,
-} from "@/components/ui/social-links";
 
 export function FeaturePhoto({ lang }: { lang: Lang }) {
   return (
@@ -42,40 +37,13 @@ export function FeaturePhoto({ lang }: { lang: Lang }) {
           {t(copy.home.profileRole, lang)}
         </p>
 
-        {/* Quick Social Mini-Toolbar */}
-        <div className="flex items-center justify-between pt-2 mt-1 border-t border-[var(--line)]">
-          <span className="font-plex-mono text-[9.5px] text-[var(--mut)] uppercase tracking-wider">
-            {lang === "tr" ? "BAĞLANTILAR" : "CONNECT"}
+        {/* Location — the social links already sit beside this card */}
+        <div className="flex items-center justify-between pt-2 mt-1 border-t border-[var(--line)] font-plex-mono text-[9.5px] tracking-wider">
+          <span className="flex items-center gap-1.5 text-[var(--ink)] font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            İSTANBUL
           </span>
-          <div className="flex items-center gap-2">
-            <a
-              href="https://github.com/gurbuzf"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="GitHub"
-              className="p-1.5 text-[var(--ink)] hover:text-[var(--acc)] hover:bg-[var(--paper)] rounded-sm transition-colors"
-            >
-              <GithubIcon size={14} />
-            </a>
-            <a
-              href="https://scholar.google.com/citations?user=CVfKPpUAAAAJ&hl=tr"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Google Scholar"
-              className="p-1.5 text-[var(--ink)] hover:text-[var(--acc)] hover:bg-[var(--paper)] rounded-sm transition-colors"
-            >
-              <ScholarIcon size={14} />
-            </a>
-            <a
-              href="https://www.linkedin.com/in/faruk-gurbuz"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="LinkedIn"
-              className="p-1.5 text-[var(--ink)] hover:text-[var(--acc)] hover:bg-[var(--paper)] rounded-sm transition-colors"
-            >
-              <LinkedinIcon size={14} />
-            </a>
-          </div>
+          <span className="text-[var(--mut)]">41°01′N · 28°58′E</span>
         </div>
       </div>
     </div>

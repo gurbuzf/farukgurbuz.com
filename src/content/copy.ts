@@ -27,7 +27,7 @@ export const copy = {
       en: "Water Resources Engineer and Geospatial Data Scientist specializing in hydrological modeling, environmental remote sensing, and open-source scientific tools.",
       tr: "Hidrolojik modelleme, çevresel uzaktan algılama ve açık kaynaklı bilimsel araçlar üzerine uzmanlaşmış Su Kaynakları Mühendisi ve Mekansal Veri Bilimci.",
     },
-    viewCv: { en: "Interactive CV →", tr: "İnteraktif CV →" },
+    viewCv: { en: "Interactive CV", tr: "İnteraktif CV" },
     viewPubs: { en: "Publications", tr: "Yayınlar" },
     viewLab: { en: "Hydrology Lab ⚡", tr: "Hidroloji Lab ⚡" },
     scrollToLab: { en: "EXPLORE HYDROLOGY LAB ↓", tr: "HİDROLOJİ LABORATUVARINI KEŞFET ↓" },
@@ -62,10 +62,7 @@ export const copy = {
     fullRecord: { en: "FULL RECORD:", tr: "TAM KAYIT:" },
   },
   footer: {
-    copyright: {
-      en: "© 2026 FARUK GÜRBÜZ · WATER RESOURCES & GEOSPATIAL DATA SCIENCE",
-      tr: "© 2026 FARUK GÜRBÜZ · SU KAYNAKLARI & MEKANSAL VERİ BİLİMİ",
-    },
+    copyright: { en: "© 2026 FARUK GÜRBÜZ", tr: "© 2026 FARUK GÜRBÜZ" },
     github: { en: "GITHUB", tr: "GITHUB" },
     linkedin: { en: "LINKEDIN", tr: "LINKEDIN" },
     scholar: { en: "SCHOLAR", tr: "SCHOLAR" },

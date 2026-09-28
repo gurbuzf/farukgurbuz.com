@@ -144,7 +144,7 @@ export function SocialLinks({ variant = "hero", className = "" }: SocialLinksPro
 
   // "hero" variant: prominent, high-visibility brand logos
   return (
-    <div className={`flex items-center gap-3.5 flex-wrap ${className}`}>
+    <div className={`flex items-center gap-2.5 flex-wrap ${className}`}>
       {linksToRender.map((item) => {
         const Icon = item.icon;
         return (
@@ -153,17 +153,14 @@ export function SocialLinks({ variant = "hero", className = "" }: SocialLinksPro
             href={item.href}
             target={item.href.startsWith("http") ? "_blank" : undefined}
             rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-            className="group relative inline-flex items-center gap-2.5 px-4 py-2.5 bg-[var(--paper)] border-[1.5px] border-[var(--frame)] hover:border-[var(--acc)] text-[var(--ink)] font-display font-semibold text-[13px] shadow-[3px_3px_0_var(--shadow)] hover:shadow-[5px_5px_0_var(--shadow)] hover:-translate-y-0.5 transition-all duration-200"
+            className="group relative inline-flex items-center gap-2 px-3.5 py-2 bg-[var(--atlas-card)]/90 backdrop-blur-sm border-[1.5px] border-[var(--frame)] hover:border-[var(--acc)] text-[var(--ink)] font-display font-semibold text-[12.5px] shadow-[3px_3px_0_var(--shadow)] hover:shadow-[5px_5px_0_var(--shadow)] hover:-translate-y-0.5 transition-all duration-200"
           >
             <Icon
-              size={20}
+              size={17}
               className={`${item.iconClass} group-hover:scale-110 transition-transform duration-200 flex-none`}
             />
             <span className="tracking-tight group-hover:text-[var(--acc)] transition-colors">
               {t(item.label, lang)}
-            </span>
-            <span className="text-[var(--mut)] font-plex-mono text-[11px] hidden sm:inline opacity-70 font-normal">
-              {item.handle}
             </span>
           </a>
         );
