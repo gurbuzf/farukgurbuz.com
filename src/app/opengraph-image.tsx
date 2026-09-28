@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const alt = "Faruk Gürbüz — Water Resources Engineer & Geospatial Data Scientist";
 
 export default async function OpengraphImage() {
   const logoData = await readFile(join(process.cwd(), "public/images/logo-navy.png"));
@@ -52,13 +53,16 @@ export default async function OpengraphImage() {
           <div
             style={{
               marginTop: 10,
-              fontSize: 26,
-              letterSpacing: "0.14em",
+              fontSize: 24,
+              letterSpacing: "0.1em",
               textTransform: "uppercase",
               color: "#1b87b8",
             }}
           >
-            Personal Atlas
+            Water Resources Engineer · Geospatial Data Scientist
+          </div>
+          <div style={{ marginTop: 18, fontSize: 24, color: "#3a4459" }}>
+            Hydrological modeling · Flood forecasting · Remote sensing
           </div>
         </div>
       </div>

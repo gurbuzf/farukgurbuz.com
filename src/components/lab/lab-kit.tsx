@@ -2,7 +2,7 @@
 
 import { useCallback, type ReactNode } from "react";
 import { useAtlas } from "@/lib/atlas-provider";
-import { ArrowLeft, ArrowRight, BookOpen, Check, FlaskConical, Lightbulb, Eye, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, FlaskConical, Lightbulb, Eye, Sigma, X } from "lucide-react";
 
 export type Bi = { en: string; tr: string };
 
@@ -78,6 +78,7 @@ export function LessonPanel({
   controls,
   tryThis,
   observe,
+  math,
   onPrev,
   onNext,
 }: {
@@ -88,6 +89,8 @@ export function LessonPanel({
   controls?: ReactNode;
   tryThis?: ReactNode[];
   observe?: ReactNode;
+  /** Optional governing equations for this chapter, shown collapsed */
+  math?: ReactNode;
   onPrev?: () => void;
   onNext?: () => void;
 }) {
@@ -129,6 +132,20 @@ export function LessonPanel({
             </div>
             <div className="mt-1.5 font-display text-[13.5px] leading-[1.6] text-[var(--ink)] flex flex-col gap-1.5">{observe}</div>
           </div>
+        )}
+
+        {math && (
+          <details className="group border border-[var(--line)] open:border-[var(--frame)]">
+            <summary className="cursor-pointer list-none flex items-center justify-between gap-2 px-3 py-2">
+              <span className="flex items-center gap-1.5 font-plex-mono text-[10.5px] font-bold tracking-[0.12em] uppercase text-[var(--ink)]">
+                <Sigma size={13} className="text-[var(--acc)]" />
+                {tx("The math behind it", "İşin matematiği")}
+              </span>
+              <span className="font-plex-mono text-[11px] text-[var(--mut)] group-open:hidden">▾</span>
+              <span className="font-plex-mono text-[11px] text-[var(--mut)] hidden group-open:inline">▴</span>
+            </summary>
+            <div className="px-3 pb-3">{math}</div>
+          </details>
         )}
       </div>
 

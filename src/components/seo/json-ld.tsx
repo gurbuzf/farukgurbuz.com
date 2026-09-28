@@ -1,31 +1,46 @@
 /**
- * Global JSON-LD structured data for search engines and AI.
- * Renders Person + WebSite schema.org markup so Google can show
- * rich knowledge-panel cards and sitelinks for "Faruk Gürbüz".
+ * Site-wide JSON-LD: Person + WebSite. Page-specific schema (ProfilePage,
+ * LearningResource, ScholarlyArticle, breadcrumbs) lives in each route.
  */
-
-const BASE_URL = "https://farukgurbuz.com";
+import { PERSON_ID, PERSON_NAME, SITE_URL, WEBSITE_ID } from "@/lib/seo";
+import { StructuredData } from "./structured-data";
 
 const personSchema = {
   "@context": "https://schema.org",
   "@type": "Person",
-  "@id": `${BASE_URL}/#person`,
-  name: "Faruk Gürbüz",
+  "@id": PERSON_ID,
+  name: PERSON_NAME,
   alternateName: "Faruk Gurbuz",
-  url: BASE_URL,
-  image: `${BASE_URL}/images/faruk.jpg`,
+  givenName: "Faruk",
+  familyName: "Gürbüz",
+  url: SITE_URL,
+  image: `${SITE_URL}/images/faruk.jpg`,
   jobTitle: "Water Resources Engineer",
   description:
-    "Water Resources Engineer and Geospatial Data Scientist specializing in hydrological modeling, GIS-based watershed analysis, dam flood routing, and open-source hydrology tools.",
+    "Water Resources Engineer and Geospatial Data Scientist specializing in hydrological modeling, flood forecasting, environmental remote sensing and open-source scientific tools.",
+  worksFor: {
+    "@type": "GovernmentOrganization",
+    name: "Turkish Water Institute (SUEN)",
+    url: "https://www.suen.gov.tr",
+  },
+  address: { "@type": "PostalAddress", addressLocality: "İstanbul", addressCountry: "TR" },
+  knowsLanguage: ["tr", "en"],
   knowsAbout: [
     "Hydrology",
     "Water Resources Engineering",
-    "GIS",
-    "Geospatial Data Science",
-    "Watershed Delineation",
-    "Dam Flood Routing",
-    "Remote Sensing",
     "Hydrological Modeling",
+    "Flood Forecasting",
+    "Machine Learning",
+    "Geographic Information Systems",
+    "Geospatial Data Science",
+    "Remote Sensing",
+    "Evapotranspiration",
+    "Watershed Delineation",
+    "Reservoir Flood Routing",
+  ],
+  alumniOf: [
+    { "@type": "CollegeOrUniversity", name: "University of Iowa", url: "https://uiowa.edu" },
+    { "@type": "CollegeOrUniversity", name: "Istanbul Technical University", url: "https://www.itu.edu.tr" },
   ],
   sameAs: [
     "https://scholar.google.com/citations?user=CVfKPpUAAAAJ",
@@ -33,43 +48,22 @@ const personSchema = {
     "https://github.com/gurbuzf",
     "https://www.linkedin.com/in/faruk-gurbuz",
   ],
-  alumniOf: [
-    {
-      "@type": "CollegeOrUniversity",
-      name: "University of Iowa",
-      url: "https://www.uiowa.edu",
-    },
-    {
-      "@type": "CollegeOrUniversity",
-      name: "Istanbul Technical University",
-      url: "https://www.itu.edu.tr",
-    },
-  ],
 };
 
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "@id": `${BASE_URL}/#website`,
-  url: BASE_URL,
-  name: "Faruk Gürbüz — Water Resources Engineer & Geospatial Data Scientist",
+  "@id": WEBSITE_ID,
+  url: SITE_URL,
+  name: PERSON_NAME,
+  alternateName: "Faruk Gürbüz — Water Resources Engineer & Geospatial Data Scientist",
   description:
-    "Personal website of Faruk Gürbüz featuring interactive hydrology simulations, GIS tools, watershed delineation, dam flood routing, and peer-reviewed publications.",
-  author: { "@id": `${BASE_URL}/#person` },
-  publisher: { "@id": `${BASE_URL}/#person` },
+    "Personal website of Faruk Gürbüz: CV, peer-reviewed publications and free interactive hydrology lessons on watershed delineation and dam flood routing.",
+  author: { "@id": PERSON_ID },
+  publisher: { "@id": PERSON_ID },
   inLanguage: ["en", "tr"],
 };
 
 export function JsonLd() {
-  const payload = JSON.stringify([personSchema, websiteSchema]).replace(
-    /</g,
-    "\\u003c"
-  );
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: payload }}
-    />
-  );
+  return <StructuredData data={[personSchema, websiteSchema]} />;
 }

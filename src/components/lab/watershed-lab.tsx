@@ -591,6 +591,7 @@ export function WatershedLab() {
         </div>
 
         <LessonPanel
+          key={chapter}
           index={chapter}
           total={CHAPTERS.length}
           title={title}

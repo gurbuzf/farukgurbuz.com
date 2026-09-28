@@ -19,6 +19,14 @@ import {
 } from "@/lib/reservoir-lesson";
 import { LineChart, type ChartSeries } from "./lab-chart";
 import { ChangeNote, ChapterNav, Formula, Goal, LessonPanel, Manual, Slider, Stat, fmt, useTx, type Change } from "./lab-kit";
+import {
+  ContinuityEquations,
+  GoverningEquationsReference,
+  InflowEquations,
+  RK4Equations,
+  RatingEquations,
+  StorageEquations,
+} from "./equations";
 
 const CHAPTERS = [
   { en: "The flood", tr: "Taşkın" },
@@ -162,6 +170,7 @@ export function ReservoirLab() {
   let tryThis: React.ReactNode[] = [];
   let observe: React.ReactNode = null;
   let visual: React.ReactNode = null;
+  let math: React.ReactNode = null;
 
   const s = result.summary;
 
@@ -236,6 +245,43 @@ export function ReservoirLab() {
       </div>
     );
   }
+
+  if (chapter === 0) math = <InflowEquations />;
+  if (chapter === 1)
+    math = (
+      <>
+        <ContinuityEquations />
+        <div className="mt-3 pt-3 border-t border-[var(--line)]">
+          <StorageEquations />
+        </div>
+      </>
+    );
+  if (chapter === 2) math = <RatingEquations />;
+  if (chapter === 3)
+    math = (
+      <>
+        <p className="font-display text-[12.5px] leading-snug text-[var(--ink2)]">
+          {tx(
+            "Routing combines everything: the inflow I(t), the continuity equation, A(h) and the outlet equations Q(h). The model solves them step by step:",
+            "Öteleme her şeyi birleştirir: giriş I(t), süreklilik denklemi, A(h) ve çıkış denklemleri Q(h). Model bunları adım adım çözer:"
+          )}
+        </p>
+        <RK4Equations />
+        {/* a button, not a #link: the URL hash selects the active lesson */}
+        <button
+          type="button"
+          onClick={() => {
+            const el = document.getElementById("governing-equations") as HTMLDetailsElement | null;
+            if (!el) return;
+            el.open = true;
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          className="cursor-pointer mt-2 font-display text-[12.5px] text-[var(--acc)] underline underline-offset-2"
+        >
+          {tx("See all governing equations ↓", "Tüm temel denklemleri görün ↓")}
+        </button>
+      </>
+    );
 
   if (chapter === 1) {
     const now = stepAt(result, t);
@@ -704,6 +750,7 @@ export function ReservoirLab() {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px] gap-5 items-start">
         <div className="lg:sticky lg:top-[136px] p-3 sm:p-4 bg-[var(--atlas-card)] border border-[var(--line)]">{visual}</div>
         <LessonPanel
+          key={chapter}
           index={chapter}
           total={CHAPTERS.length}
           title={title}
@@ -711,6 +758,7 @@ export function ReservoirLab() {
           controls={controls}
           tryThis={tryThis}
           observe={observe}
+          math={math}
           onPrev={chapter > 0 ? () => goTo(chapter - 1) : undefined}
           onNext={chapter < CHAPTERS.length - 1 ? () => goTo(chapter + 1) : undefined}
         />
@@ -736,6 +784,8 @@ export function ReservoirLab() {
           { term: tx("Level-pool routing", "Level-pool öteleme"), def: tx("Routing that assumes a flat water surface in the reservoir.", "Rezervuarda yatay su yüzeyi varsayan öteleme yöntemi.") },
         ]}
       />
+
+      <GoverningEquationsReference />
     </div>
   );
 }

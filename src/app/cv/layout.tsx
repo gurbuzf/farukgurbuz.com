@@ -1,16 +1,18 @@
-import type { Metadata } from "next";
+import { StructuredData } from "@/components/seo/structured-data";
+import { breadcrumbLd, pageMetadata } from "@/lib/seo";
 
-const TITLE = "CV — Faruk Gürbüz | Water Resources Engineer & GIS Specialist";
-const DESCRIPTION = "Academic and professional curriculum vitae of Faruk Gürbüz — Water Resources Engineer, Geospatial Data Scientist, and GIS specialist with experience in hydrological modeling, remote sensing, and flood risk analysis.";
-
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: { canonical: "/cv" },
-  openGraph: { title: TITLE, description: DESCRIPTION, url: "/cv" },
-  twitter: { title: TITLE, description: DESCRIPTION },
-};
+export const metadata = pageMetadata({
+  title: "CV — Hydrology, GIS & Remote Sensing",
+  description:
+    "CV of Faruk Gürbüz: engineer at the Turkish Water Institute (SUEN), formerly DSİ and IIHR–Hydroscience & Engineering; M.Sc. University of Iowa.",
+  path: "/cv",
+});
 
 export default function CvLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <StructuredData data={breadcrumbLd([{ name: "Home", path: "/" }, { name: "CV", path: "/cv" }])} />
+      {children}
+    </>
+  );
 }

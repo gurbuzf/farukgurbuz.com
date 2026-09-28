@@ -45,10 +45,10 @@ export const copy = {
   },
   cv: {
     sheetEyebrow: { en: "PROFESSIONAL PROFILE", tr: "PROFESYONEL PROFİL" },
-    title: { en: "A career you can scroll", tr: "Kaydırılabilir bir kariyer" },
+    title: { en: "Faruk Gürbüz — Curriculum Vitae", tr: "Faruk Gürbüz — Özgeçmiş" },
     desc: {
-      en: "Follow the channel downstream — 2011 at the source, today at the gauge.",
-      tr: "Kanalı akış aşağı doğru takip edin — kaynakta 2011, çıkışta bugün.",
+      en: "A career you can scroll: follow the channel downstream — 2011 at the source, today at the gauge.",
+      tr: "Kaydırılabilir bir kariyer: kanalı akış aşağı doğru takip edin — kaynakta 2011, çıkışta bugün.",
     },
     download: { en: "Download CV (PDF)", tr: "CV'yi indir (PDF)" },
     skillsHeading: { en: "SKILLS & EXPERTISE", tr: "BECERİLER & UZMANLIK" },

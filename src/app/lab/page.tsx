@@ -84,10 +84,10 @@ export default function HydrologyLabPage() {
         <div className="mx-auto w-full max-w-[1280px] px-4 sm:px-8 lg:px-12 pt-10 pb-10 sm:pt-12 flex flex-col gap-7">
           <div className="flex flex-col gap-3 max-w-[760px]">
             <span className="font-plex-mono text-[11px] font-bold tracking-[0.16em] text-[var(--acc)] uppercase">
-              {tx("Hydrology Lab · interactive lessons", "Hidroloji Lab · etkileşimli dersler")}
+              {tx("Interactive lessons · watersheds & dam flood routing", "Etkileşimli dersler · havzalar ve baraj taşkın ötelemesi")}
             </span>
             <h1 className="font-display font-bold text-[32px] sm:text-[44px] leading-[1.05] tracking-[-0.03em] text-[var(--ink)]">
-              {tx("Learn hydrology by changing things", "Hidrolojiyi bir şeyleri değiştirerek öğrenin")}
+              {tx("Hydrology Lab: learn by changing things", "Hidroloji Lab: değiştirerek öğrenin")}
             </h1>
             <p className="font-display text-[15.5px] sm:text-[17px] leading-[1.6] text-[var(--ink2)]">
               {tx(
